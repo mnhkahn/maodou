@@ -73,5 +73,3 @@ func (this *App) Register(handler Handler) {
 func init() {
 	APP = NewController()
 }
-
-// ColorLog("[TRAC] Start to parse [%s]...\n")

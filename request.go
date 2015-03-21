@@ -41,7 +41,7 @@ func (this *Request) Cawl(u string) *Response {
 		}
 	}
 
-	resp, err := NewResponse(strings.NewReader(res_str))
+	resp, err := NewResponse(strings.NewReader(res_str), u)
 	if err != nil {
 		log.Fatalf("Cawl Error: %s", err.Error())
 	}

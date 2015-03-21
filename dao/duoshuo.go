@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/franela/goreq"
 	. "github.com/mnhkahn/maodou/models"
+	"log"
 	"net/url"
 )
 
@@ -41,29 +42,27 @@ func (this *DuoShuoDaoContainer) Debug(is_debug bool) {
 }
 
 func (this *DuoShuoDaoContainer) AddResult(p *Result) {
-	this.req.Method = "Result"
-	this.req.Uri = "http://api.duoshuo.com/Results/import.json"
+	this.req.Method = "POST"
+	this.req.Uri = "http://api.duoshuo.com/posts/import.json"
 	this.req.ContentType = "application/x-www-form-urlencoded"
 
 	addDuoShuo := url.Values{}
 	addDuoShuo.Add("short_name", this.config.ShortName)
 	addDuoShuo.Add("secret", this.config.Secret)
-	addDuoShuo.Add("Results[0][Result_key]", p.Link)
-	addDuoShuo.Add("Results[0][thread_key]", "haixiuzucyeam")
+	addDuoShuo.Add("posts[0][post_key]", p.Link)
+	addDuoShuo.Add("posts[0][thread_key]", "haixiuzucyeam")
 
-	// p.Description = ""
-	p.Detail = ""
 	duoshuo_byte, _ := json.Marshal(*p)
-	addDuoShuo.Add("Results[0][message]", base64.URLEncoding.EncodeToString(duoshuo_byte))
+	addDuoShuo.Add("posts[0][message]", base64.URLEncoding.EncodeToString(duoshuo_byte))
 	this.req.Body = addDuoShuo.Encode()
 	this.req.ShowDebug = true
 	resp, err := this.req.Do()
 	if err != nil {
-		panic(err)
+		log.Fatalf(err.Error())
 	}
 	if resp.StatusCode != 200 {
 		err_str, _ := resp.Body.ToString()
-		panic(fmt.Errorf("Error: %d, %s", resp.StatusCode, err_str))
+		log.Fatalf("Error: %d, %s", resp.StatusCode, err_str)
 	}
 }
 

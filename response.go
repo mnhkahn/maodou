@@ -6,6 +6,7 @@ import (
 )
 
 type Response struct {
+	Url      string
 	Document *goquery.Document
 }
 
@@ -14,8 +15,9 @@ type Response struct {
 // 	return resp
 // }
 //
-func NewResponse(r io.Reader) (*Response, error) {
+func NewResponse(r io.Reader, url string) (*Response, error) {
 	resp := new(Response)
+	resp.Url = url
 	var err error
 	resp.Document, err = goquery.NewDocumentFromReader(r)
 	return resp, err
