@@ -3,10 +3,10 @@ package maodou
 import (
 	. "github.com/mnhkahn/maodou/logs"
 	"github.com/mnhkahn/maodou/models"
-	"github.com/rakyll/ticktock"
-	"github.com/rakyll/ticktock/t"
+	// "github.com/rakyll/ticktock"
+	// "github.com/rakyll/ticktock/t"
 	"log"
-	"net"
+	// "net"
 	"time"
 )
 
@@ -72,25 +72,34 @@ func (this *App) Run() error {
 
 func Register(handler Handler, duration int) {
 	app := NewController(handler)
-	go func() {
-		ticktock.Schedule(
-			"maodou",
-			app,
-			&t.When{Every: t.Every(duration).Seconds()})
-	}()
-
 	app.Run()
 
-	ServerAddr, _ := net.ResolveUDPAddr("udp", ":10001")
+	timer := time.NewTicker(time.Duration(duration) * time.Minute)
+	for {
+		select {
+		case <-timer.C:
+			go func() {
+				app.Run()
+			}()
+		}
+	}
 
-	/* Now listen at selected port */
-	ServerConn, _ := net.ListenUDP("udp", ServerAddr)
-	defer ServerConn.Close()
+	// go func() {
+	// err := ticktock.Schedule(
+	// 	"maodou",
+	// 	app,
+	// 	&t.When{Every: t.Every(1).Seconds()})
+	// log.Println(err)
+	// app.Run()
+	// defer ticktock.Cancel("maodou")
+	// }()
 
-	buf := make([]byte, 1024)
-	ServerConn.ReadFromUDP(buf)
+	// ServerAddr, _ := net.ResolveUDPAddr("udp", ":10001")
+
+	// /* Now listen at selected port */
+	// ServerConn, _ := net.ListenUDP("udp", ServerAddr)
+	// defer ServerConn.Close()
+
+	// buf := make([]byte, 1024)
+	// ServerConn.ReadFromUDP(buf)
 }
-
-// func init() {
-// 	APP = NewController()
-// }

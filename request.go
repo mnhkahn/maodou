@@ -31,7 +31,7 @@ func (this *Request) Cawl(paras ...string) *Response {
 	}
 	http_resp, err := this.Do()
 	if err != nil {
-		log.Fatalf("Cawl Error: %s", err.Error())
+		log.Println("Cawl Error: %s", err.Error())
 	}
 
 	println(http_resp.StatusCode, "****", http_resp.Header.Get("Location"))
@@ -40,13 +40,13 @@ func (this *Request) Cawl(paras ...string) *Response {
 	if http_resp.StatusCode == http.StatusOK {
 		res_str, err = http_resp.Body.ToString()
 		if err != nil {
-			log.Fatalf("Cawl Error: %s", err.Error())
+			log.Println("Cawl Error: %s", err.Error())
 		}
 	}
 
 	resp, err := NewResponse(strings.NewReader(res_str), paras[0])
 	if err != nil {
-		log.Fatalf("Cawl Error: %s", err.Error())
+		log.Println("Cawl Error: %s", err.Error())
 	}
 	time.Sleep(5 * time.Second)
 	return resp

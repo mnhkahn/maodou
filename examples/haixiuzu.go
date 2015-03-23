@@ -48,5 +48,5 @@ func (this *Haixiu) Result(result *models.Result) {
 }
 
 func main() {
-	maodou.Register(new(Haixiu), 5)
+	maodou.Register(new(Haixiu), 30)
 }
