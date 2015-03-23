@@ -24,14 +24,17 @@ func NewRequest() *Request {
 	return req
 }
 
-func (this *Request) Cawl(u string) *Response {
-	this.Uri = u
+func (this *Request) Cawl(paras ...string) *Response {
+	this.Uri = paras[0]
+	if len(paras) == 2 {
+		this.AddHeader("Referer", paras[1])
+	}
 	http_resp, err := this.Do()
 	if err != nil {
 		log.Fatalf("Cawl Error: %s", err.Error())
 	}
 
-	println(http_resp.StatusCode, "****")
+	println(http_resp.StatusCode, "****", http_resp.Header.Get("Location"))
 
 	res_str := ""
 	if http_resp.StatusCode == http.StatusOK {
@@ -41,7 +44,7 @@ func (this *Request) Cawl(u string) *Response {
 		}
 	}
 
-	resp, err := NewResponse(strings.NewReader(res_str), u)
+	resp, err := NewResponse(strings.NewReader(res_str), paras[0])
 	if err != nil {
 		log.Fatalf("Cawl Error: %s", err.Error())
 	}

@@ -3,7 +3,10 @@ package maodou
 import (
 	. "github.com/mnhkahn/maodou/logs"
 	"github.com/mnhkahn/maodou/models"
+	"github.com/rakyll/ticktock"
+	"github.com/rakyll/ticktock/t"
 	"log"
+	"net"
 	"time"
 )
 
@@ -28,9 +31,9 @@ func (this *MaoDou) Start() {
 	log.Println("Start Method is not override.")
 }
 
-func (this *MaoDou) Cawl(url string) *Response {
-	log.Printf("Start Parse %s.", url)
-	return this.req.Cawl(url)
+func (this *MaoDou) Cawl(paras ...string) *Response {
+	log.Printf("Start Parse %s.", paras[0])
+	return this.req.Cawl(paras...)
 }
 
 func (this *MaoDou) Index(resp *Response) {
@@ -53,23 +56,41 @@ type App struct {
 	handler Handler
 }
 
-func NewController() *App {
+func NewController(handler Handler) *App {
 	app := new(App)
+	app.handler = handler
 	return app
 }
 
-func (this *App) Run() {
+func (this *App) Run() error {
 	ColorLog("[INFO] Start parse at %s...\n", time.Now().Format(time.RFC3339))
 	this.handler.Init()
 	this.handler.Start()
 	ColorLog("[SUCC] Parse end.\n")
+	return nil
 }
 
-func (this *App) Register(handler Handler) {
-	this.handler = handler
-	this.Run()
+func Register(handler Handler, duration int) {
+	app := NewController(handler)
+	go func() {
+		ticktock.Schedule(
+			"maodou",
+			app,
+			&t.When{Every: t.Every(duration).Seconds()})
+	}()
+
+	app.Run()
+
+	ServerAddr, _ := net.ResolveUDPAddr("udp", ":10001")
+
+	/* Now listen at selected port */
+	ServerConn, _ := net.ListenUDP("udp", ServerAddr)
+	defer ServerConn.Close()
+
+	buf := make([]byte, 1024)
+	ServerConn.ReadFromUDP(buf)
 }
 
-func init() {
-	APP = NewController()
-}
+// func init() {
+// 	APP = NewController()
+// }
