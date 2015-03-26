@@ -38,6 +38,12 @@ func (this *SolrDaoContainer) Debug(is_debug bool) {
 }
 
 func (this *SolrDaoContainer) AddResult(p *Result) {
+	// Skip duplicate items
+	if this.GetResultByLink(p.Link) != nil {
+		fmt.Println("duplicate", p.Link)
+		return
+	}
+
 	this.solr_req.Method = "POST"
 	this.solr_req.Uri = this.dsn + "/update"
 
@@ -112,9 +118,31 @@ func (this *SolrDaoContainer) GetResultById(id int) *Result {
 	return p
 }
 
-func (this *SolrDaoContainer) GetResultByLink(url string) *Result {
-	p := new(Result)
-	return p
+func (this *SolrDaoContainer) GetResultByLink(u string) *Result {
+	this.solr_req.Method = "GET"
+	this.solr_req.Uri = this.dsn + "/select"
+
+	query := url.Values{}
+	query.Add("wt", "json")
+	query.Add("q", fmt.Sprintf("link:%s", u))
+	query.Add("start", fmt.Sprintf("%d", 0))
+	query.Add("rows", fmt.Sprintf("%d", 1))
+	this.solr_req.QueryString = query
+
+	res, err := this.solr_req.Do()
+	if err != nil {
+		panic(err)
+	}
+
+	solr_Results := new(SolrResult)
+	err = res.Body.FromJsonTo(solr_Results)
+	if err != nil {
+		panic(err)
+	}
+	if len(solr_Results.Response.Docs) > 0 {
+		return &(solr_Results.Response.Docs[0])
+	}
+	return nil
 }
 
 func (this *SolrDaoContainer) GetResult(author, sort string, limit, start int) []Result {

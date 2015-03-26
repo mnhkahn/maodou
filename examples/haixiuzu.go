@@ -20,7 +20,7 @@ func (this *Haixiu) Index(resp *maodou.Response) {
 	resp.Doc(`#content > div > div.article > div:nth-child(2) > table > tbody > tr > td.title > a`).Each(func(i int, s *goquery.Selection) {
 		href, has := s.Attr("href")
 		if has {
-			this.Detail(this.Cawl(href, "www.douban.com/group/haixiuzu/discussion"))
+			this.Detail(this.Cawl(href))
 		}
 	})
 }

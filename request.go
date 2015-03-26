@@ -10,6 +10,7 @@ import (
 
 type Request struct {
 	goreq.Request
+	root string
 }
 
 func NewRequest() *Request {
@@ -24,11 +25,16 @@ func NewRequest() *Request {
 	return req
 }
 
-func (this *Request) Cawl(paras ...string) *Response {
-	this.Uri = paras[0]
-	if len(paras) == 2 {
-		this.AddHeader("Referer", paras[1])
+func (this *Request) Cawl(url string) *Response {
+	this.Uri = url
+
+	// Add referer
+	if this.root == "" {
+		this.root = url
+	} else {
+		this.AddHeader("Referer", this.root)
 	}
+
 	http_resp, err := this.Do()
 	if err != nil {
 		log.Println("Cawl Error: %s", err.Error())
@@ -44,7 +50,7 @@ func (this *Request) Cawl(paras ...string) *Response {
 		}
 	}
 
-	resp, err := NewResponse(strings.NewReader(res_str), paras[0])
+	resp, err := NewResponse(strings.NewReader(res_str), url)
 	if err != nil {
 		log.Println("Cawl Error: %s", err.Error())
 	}
