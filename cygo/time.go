@@ -24,4 +24,4 @@ func (t *CyTime) UnmarshalJSON(data []byte) (err error) {
 }
 
 const DATE_LAYOUT_SOLR_MINUTE = "2006-01-02T15:04:00Z"
-const DATE_LAYOUT_CHINA = "2006年1月2日"
+const DATE_LAYOUT_CHINA = "2006年1月2日 15点4分"
