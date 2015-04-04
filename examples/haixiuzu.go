@@ -6,6 +6,8 @@ import (
 	"github.com/mnhkahn/maodou/cygo"
 	"github.com/mnhkahn/maodou/dao"
 	"github.com/mnhkahn/maodou/models"
+	"strings"
+	"time"
 )
 
 type Haixiu struct {
@@ -27,8 +29,9 @@ func (this *Haixiu) Index(resp *maodou.Response) {
 
 func (this *Haixiu) Detail(resp *maodou.Response) {
 	res := new(models.Result)
+	res.Id = strings.Split(resp.Url, "/")[5]
 	res.Title = resp.Doc("#content > h1").Text()
-	res.Author = "haixiuzu"
+	res.Author = resp.Doc("#content > div > div.article > div.topic-content.clearfix > div.topic-doc > h3 > span.from > a").Text()
 	res.Figure, _ = resp.Doc("#link-report > div.topic-content > div.topic-figure.cc > img").Attr("src")
 	res.Link = resp.Url
 	res.Source = "www.douban.com/group/haixiuzu/discussion"
@@ -39,14 +42,15 @@ func (this *Haixiu) Detail(resp *maodou.Response) {
 
 func (this *Haixiu) Result(result *models.Result) {
 	if result.Figure != "" {
-		Dao, err := dao.NewDao("solr", `http://127.0.0.1:8983/solr/post`)
+		Dao, err := dao.NewDao("duoshuo", `{"short_name":"cyeam","secret":"df66f048bd56cba5bf219b51766dec0d"}`)
 		if err != nil {
 			panic(err)
 		}
 		Dao.AddResult(result)
 	}
+	time.Sleep(5 * time.Second)
 }
 
 func main() {
-	maodou.Register(new(Haixiu), 30)
+	maodou.Register(new(Haixiu), 1)
 }
