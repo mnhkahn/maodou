@@ -4,6 +4,7 @@ import (
 	"github.com/franela/goreq"
 	"log"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 )
@@ -56,4 +57,8 @@ func (this *Request) Cawl(url string) *Response {
 	}
 	time.Sleep(5 * time.Second)
 	return resp
+}
+
+func (this *Request) DumpRequest() string {
+	return this.Uri + "?" + url.Values(this.QueryString.(url.Values)).Encode()
 }

@@ -49,20 +49,22 @@ func (this *DuoShuoDaoContainer) AddResult(p *Result) {
 	addDuoShuo := url.Values{}
 	addDuoShuo.Add("short_name", this.config.ShortName)
 	addDuoShuo.Add("secret", this.config.Secret)
-	addDuoShuo.Add("posts[0][post_key]", p.Link)
+	addDuoShuo.Add("posts[0][post_key]", p.Id)
 	addDuoShuo.Add("posts[0][thread_key]", "haixiuzucyeam")
 
 	duoshuo_byte, _ := json.Marshal(*p)
-	addDuoShuo.Add("posts[0][message]", base64.URLEncoding.EncodeToString(duoshuo_byte))
-	this.req.Body = addDuoShuo.Encode()
+	addDuoShuo.Add("posts[0][message]", base64.StdEncoding.EncodeToString(duoshuo_byte))
+	this.req.Body = fmt.Sprintf("short_name=%s&secret=%s&posts[0][post_key]=%s&posts[0][thread_key]=%s&posts[0][message]=%s", this.config.ShortName, this.config.Secret, p.Id, "haixiuzucyeam", base64.URLEncoding.EncodeToString(duoshuo_byte))
 	this.req.ShowDebug = true
 	resp, err := this.req.Do()
 	if err != nil {
-		log.Fatalf(err.Error())
+		log.Println(err.Error())
 	}
 	if resp.StatusCode != 200 {
 		err_str, _ := resp.Body.ToString()
-		log.Fatalf("Error: %d, %s", resp.StatusCode, err_str)
+		log.Printf("Error: %d, %s\n", resp.StatusCode, err_str)
+	} else {
+		log.Println("Add to DuoShuo Success.")
 	}
 }
 

@@ -73,15 +73,15 @@ func (this *App) Run() error {
 func Register(handler Handler, duration int) {
 	app := NewController(handler)
 
-	timer := time.NewTicker(time.Duration(duration) * time.Minute)
-	for {
-		select {
-		case <-timer.C:
-			go func() {
-				app.Run()
-			}()
-		}
-	}
+	// timer := time.NewTicker(time.Duration(duration) * time.Minute)
+	// for {
+	// 	select {
+	// 	case <-timer.C:
+	// 		go func() {
+	app.Run()
+	// 		}()
+	// 	}
+	// }
 
 	// go func() {
 	// err := ticktock.Schedule(
