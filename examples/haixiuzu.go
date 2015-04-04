@@ -7,7 +7,6 @@ import (
 	"github.com/mnhkahn/maodou/dao"
 	"github.com/mnhkahn/maodou/models"
 	"strings"
-	"time"
 )
 
 type Haixiu struct {
@@ -48,7 +47,6 @@ func (this *Haixiu) Result(result *models.Result) {
 		}
 		Dao.AddResult(result)
 	}
-	time.Sleep(5 * time.Second)
 }
 
 func main() {
