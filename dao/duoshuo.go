@@ -13,6 +13,7 @@ import (
 type DuoShuoConfig struct {
 	ShortName string `json:"short_name"`
 	Secret    string `json:"secret"`
+	ThreadKey string `json:"thread_key"`
 }
 
 type DuoShuoDao struct {
@@ -50,7 +51,7 @@ func (this *DuoShuoDaoContainer) AddResult(p *Result) {
 	addDuoShuo.Add("short_name", this.config.ShortName)
 	addDuoShuo.Add("secret", this.config.Secret)
 	addDuoShuo.Add("posts[0][post_key]", p.Id)
-	addDuoShuo.Add("posts[0][thread_key]", "haixiuzucyeam")
+	addDuoShuo.Add("posts[0][thread_key]", this.config.ThreadKey)
 
 	duoshuo_byte, _ := json.Marshal(*p)
 	addDuoShuo.Add("posts[0][message]", base64.StdEncoding.EncodeToString(duoshuo_byte))
