@@ -7,7 +7,6 @@ import (
 	"github.com/franela/goreq"
 	. "github.com/mnhkahn/maodou/models"
 	"log"
-	"net/url"
 )
 
 type DuoShuoConfig struct {
@@ -47,15 +46,8 @@ func (this *DuoShuoDaoContainer) AddResult(p *Result) {
 	this.req.Uri = "http://api.duoshuo.com/posts/import.json"
 	this.req.ContentType = "application/x-www-form-urlencoded"
 
-	addDuoShuo := url.Values{}
-	addDuoShuo.Add("short_name", this.config.ShortName)
-	addDuoShuo.Add("secret", this.config.Secret)
-	addDuoShuo.Add("posts[0][post_key]", p.Id)
-	addDuoShuo.Add("posts[0][thread_key]", this.config.ThreadKey)
-
 	duoshuo_byte, _ := json.Marshal(*p)
-	addDuoShuo.Add("posts[0][message]", base64.StdEncoding.EncodeToString(duoshuo_byte))
-	this.req.Body = fmt.Sprintf("short_name=%s&secret=%s&posts[0][post_key]=%s&posts[0][thread_key]=%s&posts[0][message]=%s", this.config.ShortName, this.config.Secret, p.Id, "haixiuzucyeam", base64.URLEncoding.EncodeToString(duoshuo_byte))
+	this.req.Body = fmt.Sprintf("short_name=%s&secret=%s&posts[0][post_key]=%s&posts[0][thread_key]=%s&posts[0][message]=%s", this.config.ShortName, this.config.Secret, p.Id, this.config.ThreadKey, base64.URLEncoding.EncodeToString(duoshuo_byte))
 	this.req.ShowDebug = true
 	resp, err := this.req.Do()
 	if err != nil {
