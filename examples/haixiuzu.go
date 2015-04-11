@@ -31,7 +31,14 @@ func (this *Haixiu) Detail(resp *maodou.Response) {
 	res.Id = strings.Split(resp.Url, "/")[5]
 	res.Title = resp.Doc("#content > h1").Text()
 	res.Author = resp.Doc("#content > div > div.article > div.topic-content.clearfix > div.topic-doc > h3 > span.from > a").Text()
-	res.Figure, _ = resp.Doc("#link-report > div.topic-content > div.topic-figure.cc > img").Attr("src")
+	figures := []string{}
+	resp.Doc("#link-report > div.topic-content > div.topic-figure.cc").Each(func(i int, s *goquery.Selection) {
+		f, exists := s.Find("img").Attr("src")
+		if exists {
+			figures = append(figures, f)
+		}
+	})
+	res.Figure = strings.Join(figures, ",")
 	res.Link = resp.Url
 	res.Source = "www.douban.com/group/haixiuzu/discussion"
 	res.ParseDate = cygo.Now()
