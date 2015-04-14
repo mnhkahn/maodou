@@ -7,6 +7,7 @@ import (
 	"github.com/mnhkahn/maodou/dao"
 	"github.com/mnhkahn/maodou/models"
 	"strings"
+	"time"
 )
 
 type Haixiu struct {
@@ -57,5 +58,7 @@ func (this *Haixiu) Result(result *models.Result) {
 }
 
 func main() {
-	maodou.Register(new(Haixiu), 30)
+	haixiu := new(Haixiu)
+	haixiu.SetRate(30 * time.Minute)
+	maodou.Register(haixiu)
 }
