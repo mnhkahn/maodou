@@ -11,7 +11,8 @@ import (
 
 type Request struct {
 	goreq.Request
-	root string
+	root     string
+	interval time.Duration
 }
 
 func NewRequest() *Request {
@@ -55,7 +56,11 @@ func (this *Request) Cawl(url string) *Response {
 	if err != nil {
 		log.Println("Cawl Error: %s", err.Error())
 	}
-	time.Sleep(5 * time.Second)
+	if this.interval == 0 {
+		time.Sleep(5 * time.Second)
+	} else {
+		time.Sleep(this.interval)
+	}
 	return resp
 }
 

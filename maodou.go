@@ -16,11 +16,29 @@ type Handler interface {
 	Index(resp *Response)
 	Detail(resp *Response)
 	Result(result *models.Result)
+	Config() *HandlerConfig
+}
+
+type HandlerConfig struct {
+	cawl_every time.Duration
+	interval   time.Duration
 }
 
 type MaoDou struct {
-	req  *Request
-	resp *Response
+	req      *Request
+	resp     *Response
+	settings *HandlerConfig
+	Debug    bool
+}
+
+func (this *MaoDou) SetRate(times ...time.Duration) {
+	this.settings = new(HandlerConfig)
+	if len(times) == 1 {
+		this.settings.cawl_every = times[0]
+	} else if len(times) == 2 {
+		this.settings.cawl_every = times[0]
+		this.req.interval = times[1]
+	}
 }
 
 func (this *MaoDou) Init() {
@@ -50,6 +68,10 @@ func (this *MaoDou) Result(result *models.Result) {
 	log.Println("Start Method is not override.")
 }
 
+func (this *MaoDou) Config() *HandlerConfig {
+	return this.settings
+}
+
 var APP *App
 
 type App struct {
@@ -70,10 +92,15 @@ func (this *App) Run() error {
 	return nil
 }
 
-func Register(handler Handler, duration int) {
+func Register(handler Handler) {
 	app := NewController(handler)
 
-	timer := time.NewTicker(time.Duration(duration) * time.Minute)
+	duration := time.Duration(30) * time.Minute
+	if handler.Config().cawl_every > 0 {
+		duration = handler.Config().cawl_every
+	}
+
+	timer := time.NewTicker(duration)
 	for {
 		select {
 		case <-timer.C:
@@ -87,7 +114,7 @@ func Register(handler Handler, duration int) {
 	// err := ticktock.Schedule(
 	// 	"maodou",
 	// 	app,
-	// 	&t.When{Every: t.Every(1).Seconds()})
+	// 	&t.When{Every: t.Every(100).Seconds()})
 	// log.Println(err)
 	// app.Run()
 	// defer ticktock.Cancel("maodou")
