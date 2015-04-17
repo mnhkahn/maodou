@@ -13,7 +13,7 @@ import (
 
 var (
 	SCORE_TAG        = "maodou"
-	COMPUTE_FUNC     = []func(*html.Node){init_f, include_f, exclude_f, text_f, res_f}
+	COMPUTE_FUNC     = []func(*html.Node){score_f, res_f}
 	INCLUDE_ID_CLASS = []string{"content"}                                    //className或id包含content…加分
 	EXCLUDE_ID_CLASS = []string{"header", "foot", "sidebar", "about", "logo"} // className或id为header|foot|sidebar…减分
 	SET_PUNCTUATION  = []string{",", ".", "，", "。"}
@@ -33,27 +33,10 @@ func Content(r io.Reader) string {
 	}
 
 	res := getNodeText(largest_node)
-	b := bufio.NewReader(strings.NewReader(res))
-	line, err := b.ReadString('\n')
-	max_enter := 0
-
-	var buf bytes.Buffer
-	for ; max_enter < 4 && err == nil; line, err = b.ReadString('\n') {
-		buf.WriteString(line)
-		if line == "\n" {
-			max_enter++
-		} else {
-			max_enter = 0
-		}
-	}
-	return buf.String()
+	return optimizationEnter(res)
 }
 
-func init_f(n *html.Node) {
-	SetAttr(n, SCORE_TAG, "0")
-}
-
-func include_f(n *html.Node) {
+func score_f(n *html.Node) {
 	id := Attr(n, "id")
 	class := Attr(n, "class")
 	for _, include := range INCLUDE_ID_CLASS {
@@ -66,11 +49,6 @@ func include_f(n *html.Node) {
 			SetAttr(n, SCORE_TAG, fmt.Sprintf("%d", score+1))
 		}
 	}
-}
-
-func exclude_f(n *html.Node) {
-	id := Attr(n, "id")
-	class := Attr(n, "class")
 	for _, exclude := range EXCLUDE_ID_CLASS {
 		if strings.Contains(strings.ToLower(id), exclude) {
 			score, _ := strconv.Atoi(Attr(n, SCORE_TAG))
@@ -81,9 +59,6 @@ func exclude_f(n *html.Node) {
 			SetAttr(n, SCORE_TAG, fmt.Sprintf("%d", score-1))
 		}
 	}
-}
-
-func text_f(n *html.Node) {
 	text := getNodeText(n)
 	if len(text) > 150 {
 		score, _ := strconv.Atoi(Attr(n, SCORE_TAG))
@@ -112,6 +87,17 @@ func Tranverse(n *html.Node, f func(*html.Node)) {
 	for c := n.FirstChild; c != nil; c = c.NextSibling {
 		Tranverse(c, f)
 	}
+}
+
+func optimizationEnter(res string) string {
+	b := bufio.NewReader(strings.NewReader(res))
+	line, err := b.ReadString('\n')
+
+	var buf bytes.Buffer
+	for ; err == nil; line, err = b.ReadString('\n') {
+		buf.WriteString(strings.TrimSpace(line))
+	}
+	return buf.String()
 }
 
 func Attr(n *html.Node, attrName string) string {
