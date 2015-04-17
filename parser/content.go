@@ -22,18 +22,35 @@ var (
 	largest_node  *html.Node = nil
 )
 
-func Content(r io.Reader) string {
+func ContentFromNode(doc *html.Node, is_optimizatioin bool) string {
+	for _, f := range COMPUTE_FUNC {
+		Tranverse(doc, f)
+	}
+	res := getNodeText(largest_node)
+	fmt.Println(res, "******")
+	largest_node = nil
+	largest_score = 0
+	if is_optimizatioin {
+		return optimizationEnter(res)
+	}
+	return res
+}
+
+func Content(r io.Reader, is_optimizatioin bool) string {
 	doc, err := html.Parse(r)
 	if err != nil {
 		panic(err)
 	}
-
 	for _, f := range COMPUTE_FUNC {
 		Tranverse(doc, f)
 	}
-
 	res := getNodeText(largest_node)
-	return optimizationEnter(res)
+	largest_node = nil
+	largest_score = 0
+	if is_optimizatioin {
+		return optimizationEnter(res)
+	}
+	return res
 }
 
 func score_f(n *html.Node) {
@@ -92,10 +109,16 @@ func Tranverse(n *html.Node, f func(*html.Node)) {
 func optimizationEnter(res string) string {
 	b := bufio.NewReader(strings.NewReader(res))
 	line, err := b.ReadString('\n')
+	max_enter := 0
 
 	var buf bytes.Buffer
-	for ; err == nil; line, err = b.ReadString('\n') {
+	for ; max_enter < 4 && err == nil; line, err = b.ReadString('\n') {
 		buf.WriteString(strings.TrimSpace(line))
+		if line == "\n" {
+			max_enter++
+		} else {
+			max_enter = 0
+		}
 	}
 	return buf.String()
 }
@@ -130,18 +153,19 @@ func SetAttr(n *html.Node, attrName, val string) {
 }
 
 func getNodeText(node *html.Node) string {
-	if node.Type == html.TextNode {
-		// Keep newlines and spaces, like jQuery
-		return node.Data
-	} else if node.FirstChild != nil {
-		var buf bytes.Buffer
-		for c := node.FirstChild; c != nil; c = c.NextSibling {
-			if c.Data != "script" && c.Data != "noscript" {
-				buf.WriteString(getNodeText(c))
+	if node != nil {
+		if node.Type == html.TextNode {
+			// Keep newlines and spaces, like jQuery
+			return node.Data
+		} else if node.FirstChild != nil {
+			var buf bytes.Buffer
+			for c := node.FirstChild; c != nil; c = c.NextSibling {
+				if c.Data != "script" && c.Data != "noscript" {
+					buf.WriteString(getNodeText(c))
+				}
 			}
+			return buf.String()
 		}
-		return buf.String()
 	}
-
 	return ""
 }

@@ -35,14 +35,15 @@ func (this *MaoDou) SetRate(times ...time.Duration) {
 	this.settings = new(HandlerConfig)
 	if len(times) == 1 {
 		this.settings.cawl_every = times[0]
+		this.req = NewRequest(0)
 	} else if len(times) == 2 {
 		this.settings.cawl_every = times[0]
-		this.req.interval = times[1]
+		this.req = NewRequest(times[1])
 	}
 }
 
 func (this *MaoDou) Init() {
-	this.req = NewRequest()
+	// this.req = NewRequest(5)
 }
 
 func (this *MaoDou) Start() {
@@ -95,19 +96,22 @@ func (this *App) Run() error {
 func Register(handler Handler) {
 	app := NewController(handler)
 
-	duration := time.Duration(30) * time.Minute
-	if handler.Config().cawl_every > 0 {
+	duration := time.Duration(0)
+	if handler.Config() != nil && handler.Config().cawl_every > 0 {
 		duration = handler.Config().cawl_every
 	}
-
-	timer := time.NewTicker(duration)
-	for {
-		select {
-		case <-timer.C:
-			go func() {
-				app.Run()
-			}()
+	if duration > 0 {
+		timer := time.NewTicker(duration)
+		for {
+			select {
+			case <-timer.C:
+				go func() {
+					app.Run()
+				}()
+			}
 		}
+	} else {
+		app.Run()
 	}
 
 	// go func() {
