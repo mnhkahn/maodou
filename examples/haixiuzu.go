@@ -59,6 +59,6 @@ func (this *Haixiu) Result(result *models.Result) {
 
 func main() {
 	haixiu := new(Haixiu)
-	haixiu.SetRate(30 * time.Minute)
+	haixiu.SetRate(time.Duration(30)*time.Minute, time.Duration(5)*time.Second)
 	maodou.Register(haixiu)
 }

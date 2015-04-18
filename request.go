@@ -5,7 +5,6 @@ import (
 	"log"
 	"net/http"
 	"net/url"
-	"strings"
 	"time"
 )
 
@@ -15,7 +14,7 @@ type Request struct {
 	interval time.Duration
 }
 
-func NewRequest() *Request {
+func NewRequest(interval time.Duration) *Request {
 	goreq.SetConnectTimeout(time.Duration(60) * time.Second)
 	req := new(Request)
 	req.Method = "GET"
@@ -23,6 +22,7 @@ func NewRequest() *Request {
 	req.Timeout = time.Duration(60) * time.Second
 	req.AddHeader("Accept-Language", "zh-CN,zh;q=0.8,en;q=0.6,zh-TW;q=0.4")
 	req.AddHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
+	req.interval = interval
 	// req.ShowDebug = true
 	return req
 }
@@ -30,6 +30,7 @@ func NewRequest() *Request {
 func (this *Request) Cawl(url string) *Response {
 	this.Uri = url
 
+	log.Println("Start to Parse:", this.Uri)
 	// Add referer
 	if this.root == "" {
 		this.root = url
@@ -42,23 +43,19 @@ func (this *Request) Cawl(url string) *Response {
 		log.Println("Cawl Error: %s", err.Error())
 	}
 
-	println(http_resp.StatusCode, "****", http_resp.Header.Get("Location"))
-
-	res_str := ""
+	var resp *Response
 	if http_resp.StatusCode == http.StatusOK {
-		res_str, err = http_resp.Body.ToString()
+		resp, err = NewResponse(http_resp.Body, url)
 		if err != nil {
 			log.Println("Cawl Error: %s", err.Error())
+		} else {
+			log.Println("Cawl Success.")
 		}
+	} else if http_resp.StatusCode == http.StatusMovedPermanently || http_resp.StatusCode == http.StatusFound {
+		return this.Cawl(http_resp.Header.Get("Location"))
 	}
 
-	resp, err := NewResponse(strings.NewReader(res_str), url)
-	if err != nil {
-		log.Println("Cawl Error: %s", err.Error())
-	}
-	if this.interval == 0 {
-		time.Sleep(5 * time.Second)
-	} else {
+	if this.interval > 0 {
 		time.Sleep(this.interval)
 	}
 	return resp
