@@ -27,7 +27,6 @@ func ContentFromNode(doc *html.Node, is_optimizatioin bool) string {
 		Tranverse(doc, f)
 	}
 	res := getNodeText(largest_node)
-	fmt.Println(res, "******")
 	largest_node = nil
 	largest_score = 0
 	if is_optimizatioin {
