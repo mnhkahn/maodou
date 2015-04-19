@@ -15,14 +15,20 @@ type Haixiu struct {
 }
 
 func (this *Haixiu) Start() {
-	this.Index(this.Cawl("http://www.douban.com/group/haixiuzu/discussion"))
+	resp, err := this.Cawl("http://www.douban.com/group/haixiuzu/discussion")
+	if err == nil {
+		this.Index(resp)
+	}
 }
 
 func (this *Haixiu) Index(resp *maodou.Response) {
 	resp.Doc(`#content > div > div.article > div:nth-child(2) > table > tbody > tr > td.title > a`).Each(func(i int, s *goquery.Selection) {
 		href, has := s.Attr("href")
 		if has {
-			this.Detail(this.Cawl(href))
+			resp, err := this.Cawl(href)
+			if err == nil {
+				this.Detail(resp)
+			}
 		}
 	})
 }

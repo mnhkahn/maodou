@@ -1,6 +1,7 @@
 package maodou
 
 import (
+	"fmt"
 	"github.com/franela/goreq"
 	"log"
 	"net/http"
@@ -27,7 +28,7 @@ func NewRequest(interval time.Duration) *Request {
 	return req
 }
 
-func (this *Request) Cawl(url string) *Response {
+func (this *Request) Cawl(url string) (*Response, error) {
 	this.Uri = url
 
 	log.Println("Start to Parse:", this.Uri)
@@ -40,25 +41,30 @@ func (this *Request) Cawl(url string) *Response {
 
 	http_resp, err := this.Do()
 	if err != nil {
-		log.Println("Cawl Error: %s", err.Error())
+		log.Printf("Cawl Error: %s\n", err.Error())
+		return nil, err
 	}
 
 	var resp *Response
 	if http_resp.StatusCode == http.StatusOK {
 		resp, err = NewResponse(http_resp.Body, url)
 		if err != nil {
-			log.Println("Cawl Error: %s", err.Error())
+			log.Printf("Cawl Error: %s.\n", err.Error())
+			return resp, err
 		} else {
 			log.Println("Cawl Success.")
 		}
 	} else if http_resp.StatusCode == http.StatusMovedPermanently || http_resp.StatusCode == http.StatusFound {
 		return this.Cawl(http_resp.Header.Get("Location"))
+	} else {
+		log.Printf("Cawl Got Status Code %d.\n", http_resp.StatusCode)
+		return resp, fmt.Errorf("Cawl Got Status Code %d.", http_resp.StatusCode)
 	}
 
 	if this.interval > 0 {
 		time.Sleep(this.interval)
 	}
-	return resp
+	return resp, nil
 }
 
 func (this *Request) DumpRequest() string {
