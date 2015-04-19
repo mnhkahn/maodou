@@ -50,8 +50,7 @@ func (this *MaoDou) Start() {
 	log.Println("Start Method is not override.")
 }
 
-func (this *MaoDou) Cawl(url string) *Response {
-	log.Printf("Start Parse %s.", url)
+func (this *MaoDou) Cawl(url string) (*Response, error) {
 	return this.req.Cawl(url)
 }
 
