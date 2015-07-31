@@ -1,13 +1,15 @@
 package main
 
 import (
+	"strings"
+	"time"
+
 	"github.com/PuerkitoBio/goquery"
+
 	"github.com/mnhkahn/maodou"
 	"github.com/mnhkahn/maodou/cygo"
 	"github.com/mnhkahn/maodou/dao"
 	"github.com/mnhkahn/maodou/models"
-	"strings"
-	"time"
 )
 
 type Haixiu struct {
@@ -34,6 +36,9 @@ func (this *Haixiu) Index(resp *maodou.Response) {
 }
 
 func (this *Haixiu) Detail(resp *maodou.Response) {
+	if len(strings.Split(resp.Url, "/")) < 6 {
+		return
+	}
 	res := new(models.Result)
 	res.Id = strings.Split(resp.Url, "/")[5]
 	res.Title = resp.Doc("#content > h1").Text()
@@ -65,6 +70,7 @@ func (this *Haixiu) Result(result *models.Result) {
 
 func main() {
 	haixiu := new(Haixiu)
+	haixiu.Init()
 	haixiu.SetRate(time.Duration(30)*time.Minute, time.Duration(5)*time.Second)
 	maodou.Register(haixiu)
 }
