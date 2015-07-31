@@ -1,13 +1,14 @@
 package maodou
 
 import (
+	"log"
+	"net/http"
+	"time"
+
+	"github.com/mnhkahn/maodou/dao"
 	. "github.com/mnhkahn/maodou/logs"
 	"github.com/mnhkahn/maodou/models"
-	// "github.com/rakyll/ticktock"
-	// "github.com/rakyll/ticktock/t"
-	"log"
-	// "net"
-	"time"
+	"github.com/mnhkahn/maodou/supervisor"
 )
 
 type Handler interface {
@@ -17,22 +18,30 @@ type Handler interface {
 	Detail(resp *Response)
 	Result(result *models.Result)
 	Config() *HandlerConfig
+	Route(http_method, route string, function func(w http.ResponseWriter, req *http.Request))
+	Serve(ip string, port int, graceful_timeout int)
 }
 
 type HandlerConfig struct {
-	cawl_every time.Duration
-	interval   time.Duration
+	dao_name         string
+	dsn              string
+	cawl_every       time.Duration
+	interval         time.Duration
+	ip               string
+	port             int
+	graceful_timeout int
 }
 
 type MaoDou struct {
-	req      *Request
-	resp     *Response
-	settings *HandlerConfig
-	Debug    bool
+	Dao        dao.DaoContainer
+	req        *Request
+	resp       *Response
+	settings   *HandlerConfig
+	supervisor *supervisor.SupervisorController
+	Debug      bool
 }
 
 func (this *MaoDou) SetRate(times ...time.Duration) {
-	this.settings = new(HandlerConfig)
 	if len(times) == 1 {
 		this.settings.cawl_every = times[0]
 		this.req = NewRequest(0)
@@ -42,8 +51,33 @@ func (this *MaoDou) SetRate(times ...time.Duration) {
 	}
 }
 
+func (this *MaoDou) SetServe(ip string, port int, graceful_timeout int) {
+	this.settings.ip, this.settings.port, this.settings.graceful_timeout = ip, port, graceful_timeout
+}
+
+func (this *MaoDou) SetDao(dao_name, dsn string) {
+	var err error
+	this.settings.dao_name, this.settings.dsn = dao_name, dsn
+	this.Dao, err = dao.NewDao(this.settings.dao_name, this.settings.dsn)
+	if err != nil {
+		panic(err)
+	}
+}
+
 func (this *MaoDou) Init() {
-	// this.req = NewRequest(5)
+	var err error
+	this.settings = new(HandlerConfig)
+	this.settings.cawl_every = 0
+	this.settings.interval = 0
+	this.settings.graceful_timeout = 1
+	this.supervisor = supervisor.NewSupervisorController()
+	this.settings.dao_name = "sqlite"
+	this.settings.dsn = "./maodou"
+	this.req = NewRequest(0)
+	this.Dao, err = dao.NewDao(this.settings.dao_name, this.settings.dsn)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func (this *MaoDou) Start() {
@@ -72,6 +106,14 @@ func (this *MaoDou) Config() *HandlerConfig {
 	return this.settings
 }
 
+func (this *MaoDou) Route(http_method, route string, function func(w http.ResponseWriter, req *http.Request)) {
+	this.supervisor.Route(http_method, route, function)
+}
+
+func (this *MaoDou) Serve(ip string, port int, graceful_timeout int) {
+	this.supervisor.Run(ip, port, graceful_timeout)
+}
+
 var APP *App
 
 type App struct {
@@ -85,50 +127,36 @@ func NewController(handler Handler) *App {
 }
 
 func (this *App) Run() error {
-	ColorLog("[INFO] Start parse at %s...\n", time.Now().Format(time.RFC3339))
-	this.handler.Init()
-	this.handler.Start()
-	ColorLog("[SUCC] Parse end.\n")
-	return nil
-}
-
-func Register(handler Handler) {
-	app := NewController(handler)
-
 	duration := time.Duration(0)
-	if handler.Config() != nil && handler.Config().cawl_every > 0 {
-		duration = handler.Config().cawl_every
+	if this.handler.Config() != nil && this.handler.Config().cawl_every > 0 {
+		duration = this.handler.Config().cawl_every
 	}
+	APP.run()
 	if duration > 0 {
 		timer := time.NewTicker(duration)
 		for {
 			select {
 			case <-timer.C:
 				go func() {
-					app.Run()
+					APP.run()
 				}()
 			}
 		}
-	} else {
-		app.Run()
 	}
 
-	// go func() {
-	// err := ticktock.Schedule(
-	// 	"maodou",
-	// 	app,
-	// 	&t.When{Every: t.Every(100).Seconds()})
-	// log.Println(err)
-	// app.Run()
-	// defer ticktock.Cancel("maodou")
-	// }()
+	if this.handler.Config().port > 0 {
+		this.handler.Serve(this.handler.Config().ip, this.handler.Config().port, this.handler.Config().graceful_timeout)
+	}
+	return nil
+}
 
-	// ServerAddr, _ := net.ResolveUDPAddr("udp", ":10001")
+func (this *App) run() {
+	ColorLog("[INFO] Start parse at %s...\n", time.Now().Format(time.RFC3339))
+	this.handler.Start()
+	ColorLog("[SUCC] Parse end.\n")
+}
 
-	// /* Now listen at selected port */
-	// ServerConn, _ := net.ListenUDP("udp", ServerAddr)
-	// defer ServerConn.Close()
-
-	// buf := make([]byte, 1024)
-	// ServerConn.ReadFromUDP(buf)
+func Register(handler Handler) {
+	APP = NewController(handler)
+	APP.Run()
 }
