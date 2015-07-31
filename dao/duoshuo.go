@@ -20,7 +20,6 @@ type DuoShuoDao struct {
 
 func (this *DuoShuoDao) NewDaoImpl(dsn string) (DaoContainer, error) {
 	d := new(DuoShuoDaoContainer)
-
 	config := new(DuoShuoConfig)
 	err := json.Unmarshal([]byte(dsn), config)
 	d.config = config
@@ -100,7 +99,6 @@ func (this *DuoShuoDaoContainer) IsResultUpdate(p *Result) bool {
 }
 
 func (this *DuoShuoDaoContainer) Search(q string, limit, start int) (int, float64, []Result) {
-	println("*************8serach")
 	this.req.Method = "GET"
 	this.req.Uri = "http://api.duoshuo.com/threads/listResults.json"
 	this.req.ContentType = "application/x-www-form-urlencoded"
