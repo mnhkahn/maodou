@@ -44,10 +44,9 @@ type MaoDou struct {
 func (this *MaoDou) SetRate(times ...time.Duration) {
 	if len(times) == 1 {
 		this.settings.cawl_every = times[0]
-		this.req = NewRequest(0)
 	} else if len(times) == 2 {
 		this.settings.cawl_every = times[0]
-		this.req = NewRequest(times[1])
+		this.req.Interval = times[1]
 	}
 }
 
