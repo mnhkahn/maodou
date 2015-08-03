@@ -76,6 +76,7 @@ func (this *Request) Cawl(url string) (*Response, error) {
 
 	http_resp, err := this.Do()
 	if err != nil {
+		this.proxy_index = (this.proxy_index + 1) % len(this.proxies)
 		log.Printf("Cawl Error: %s\n", err.Error())
 		return nil, err
 	}

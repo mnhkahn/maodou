@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/mnhkahn/maodou/dao"
-	. "github.com/mnhkahn/maodou/logs"
+	"github.com/mnhkahn/maodou/logs"
 	"github.com/mnhkahn/maodou/models"
 	"github.com/mnhkahn/maodou/supervisor"
 )
@@ -20,6 +20,7 @@ type Handler interface {
 	Config() *HandlerConfig
 	Route(http_method, route string, function func(w http.ResponseWriter, req *http.Request))
 	Serve(ip string, port int, graceful_timeout int)
+	Log(format string, a ...interface{})
 }
 
 type HandlerConfig struct {
@@ -33,6 +34,7 @@ type HandlerConfig struct {
 }
 
 type MaoDou struct {
+	log        logs.LogContainer
 	Dao        dao.DaoContainer
 	req        *Request
 	resp       *Response
@@ -74,6 +76,7 @@ func (this *MaoDou) Init() {
 	this.settings.dsn = "./maodou"
 	this.req = NewRequest(0)
 	this.Dao, err = dao.NewDao(this.settings.dao_name, this.settings.dsn)
+	this.log, _ = logs.NewLog("colorlog", "")
 	if err != nil {
 		panic(err)
 	}
@@ -113,6 +116,10 @@ func (this *MaoDou) Serve(ip string, port int, graceful_timeout int) {
 	this.supervisor.Run(ip, port, graceful_timeout)
 }
 
+func (this *MaoDou) Log(format string, a ...interface{}) {
+	this.log.Log(format, a...)
+}
+
 var APP *App
 
 type App struct {
@@ -150,9 +157,9 @@ func (this *App) Run() error {
 }
 
 func (this *App) run() {
-	ColorLog("[INFO] Start parse at %s...\n", time.Now().Format(time.RFC3339))
+	this.handler.Log("[INFO] Start parse at %s...\n", time.Now().Format(time.RFC3339))
 	this.handler.Start()
-	ColorLog("[SUCC] Parse end.\n")
+	this.handler.Log("[SUCC] Parse end.\n")
 }
 
 func Register(handler Handler) {
