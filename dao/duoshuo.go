@@ -51,8 +51,11 @@ func (this *DuoShuoDaoContainer) AddResult(p *Result) {
 	if err != nil {
 		log.Println(err.Error())
 	}
-	if resp.StatusCode != 200 {
-		err_str, _ := resp.Body.ToString()
+	if resp == nil || resp.StatusCode != 200 {
+		var err_str string
+		if resp != nil {
+			err_str, _ = resp.Body.ToString()
+		}
 		log.Printf("Error: %d, %s\n", resp.StatusCode, err_str)
 	} else {
 		log.Println("Add to DuoShuo Success.")

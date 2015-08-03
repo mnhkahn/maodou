@@ -16,9 +16,10 @@ import (
 
 type Request struct {
 	goreq.Request
-	proxies  []*ProxyConfig
-	root     string
-	interval time.Duration
+	proxies     []*ProxyConfig
+	proxy_index int
+	root        string
+	Interval    time.Duration
 }
 
 func NewRequest(interval time.Duration) *Request {
@@ -29,22 +30,27 @@ func NewRequest(interval time.Duration) *Request {
 	req.Timeout = time.Duration(60) * time.Second
 	req.AddHeader("Accept-Language", "zh-CN,zh;q=0.8,en;q=0.6,zh-TW;q=0.4")
 	req.AddHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
-	req.interval = interval
+	req.Interval = interval
 	// req.ShowDebug = true
 
-	resp, _ := req.Cawl("http://www.xici.net.co/")
-	resp.Doc(`#ip_list > tbody > tr`).Each(func(i int, s *goquery.Selection) {
-		if i > 1 && len(req.proxies) < 10 && s.Children().Length() == 7 {
-			p := new(ProxyConfig)
-			p.ip = s.Children().Get(1).FirstChild.Data
-			p.port, _ = strconv.Atoi(s.Children().Get(2).FirstChild.Data)
-			p.location = s.Children().Get(3).FirstChild.Data
-			p.safe = s.Children().Get(4).FirstChild.Data == "高匿"
-			p.schema = s.Children().Get(5).FirstChild.Data
-			p.verifytime = s.Children().Get(6).FirstChild.Data
-			req.proxies = append(req.proxies, p)
+	if len(req.proxies) == 0 {
+		resp, _ := req.Cawl("http://www.xici.net.co/")
+		if resp != nil {
+			resp.Doc(`#ip_list > tbody > tr`).Each(func(i int, s *goquery.Selection) {
+				if i > 1 && len(req.proxies) < 10 && s.Children().Length() == 7 {
+					p := new(ProxyConfig)
+					p.ip = s.Children().Get(1).FirstChild.Data
+					p.port, _ = strconv.Atoi(s.Children().Get(2).FirstChild.Data)
+					p.location = s.Children().Get(3).FirstChild.Data
+					p.safe = s.Children().Get(4).FirstChild.Data == "高匿"
+					p.schema = s.Children().Get(5).FirstChild.Data
+					p.verifytime = s.Children().Get(6).FirstChild.Data
+					req.proxies = append(req.proxies, p)
+				}
+			})
 		}
-	})
+	}
+
 	return req
 }
 
@@ -60,7 +66,7 @@ func (this *Request) Cawl(url string) (*Response, error) {
 
 	if len(this.proxies) > 0 {
 		u := new(urlpkg.URL)
-		p := this.proxies[0]
+		p := this.proxies[this.proxy_index]
 		u.Scheme = "http"
 		u.Host = fmt.Sprintf("%s:%d", p.ip, p.port)
 		this.Proxy = u.String()
@@ -83,16 +89,19 @@ func (this *Request) Cawl(url string) (*Response, error) {
 		} else {
 			log.Println("Cawl Success.")
 		}
-	} else if http_resp.StatusCode == http.StatusMovedPermanently || http_resp.StatusCode == http.StatusFound {
-		log.Println(url, http_resp.StatusCode)
-		return this.Cawl(http_resp.Header.Get("Location"))
 	} else {
-		log.Printf("Cawl Got Status Code %d.\n", http_resp.StatusCode)
-		return resp, fmt.Errorf("Cawl Got Status Code %d.", http_resp.StatusCode)
+		this.proxy_index = (this.proxy_index + 1) % len(this.proxies)
+		if http_resp.StatusCode == http.StatusMovedPermanently || http_resp.StatusCode == http.StatusFound {
+			log.Println(url, http_resp.StatusCode)
+			return this.Cawl(http_resp.Header.Get("Location"))
+		} else {
+			log.Printf("Cawl Got Status Code %d.\n", http_resp.StatusCode)
+			return resp, fmt.Errorf("Cawl Got Status Code %d.", http_resp.StatusCode)
+		}
 	}
 
-	if this.interval > 0 {
-		time.Sleep(this.interval)
+	if this.Interval > 0 {
+		time.Sleep(this.Interval)
 	}
 	return resp, nil
 }
