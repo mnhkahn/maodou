@@ -17,7 +17,7 @@ type Haixiu struct {
 }
 
 func (this *Haixiu) Start() {
-	resp, err := this.Cawl("http://www.douban.com/group/haixiuzu/discussion")
+	resp, err := this.Cawl("http://www.douban.com/group/haixiuzu/discussion", maodou.CAWL_NOPROXY)
 	if err == nil {
 		this.Index(resp)
 	}
