@@ -54,17 +54,22 @@ func NewRequest(interval time.Duration) *Request {
 	return req
 }
 
-func (this *Request) Cawl(url string) (*Response, error) {
-	this.Uri = url
+const (
+	CAWL_NOPROXY = 0
+	CAWL_PROXY   = 1
+)
+
+func (this *Request) Cawl(paras ...interface{}) (*Response, error) {
+	this.Uri = paras[0].(string)
 
 	// Add referer
 	if this.root == "" {
-		this.root = url
+		this.root = this.Uri
 	} else {
 		this.AddHeader("Referer", this.root)
 	}
 
-	if len(this.proxies) > 0 {
+	if len(this.proxies) > 0 && (len(paras) == 1 || (len(paras) == 2 && paras[1].(int) == CAWL_PROXY)) {
 		u := new(urlpkg.URL)
 		p := this.proxies[this.proxy_index]
 		u.Scheme = "http"
@@ -76,13 +81,14 @@ func (this *Request) Cawl(url string) (*Response, error) {
 
 	http_resp, err := this.Do()
 	if err != nil {
+		this.proxy_index = (this.proxy_index + 1) % len(this.proxies)
 		log.Printf("Cawl Error: %s\n", err.Error())
 		return nil, err
 	}
 
 	var resp *Response
 	if http_resp.StatusCode == http.StatusOK {
-		resp, err = NewResponse(http_resp.Body, url)
+		resp, err = NewResponse(http_resp.Body, this.Uri)
 		if err != nil {
 			log.Printf("Cawl Error: %s.\n", err.Error())
 			return resp, err
@@ -92,7 +98,7 @@ func (this *Request) Cawl(url string) (*Response, error) {
 	} else {
 		this.proxy_index = (this.proxy_index + 1) % len(this.proxies)
 		if http_resp.StatusCode == http.StatusMovedPermanently || http_resp.StatusCode == http.StatusFound {
-			log.Println(url, http_resp.StatusCode)
+			log.Println(this.Uri, http_resp.StatusCode)
 			return this.Cawl(http_resp.Header.Get("Location"))
 		} else {
 			log.Printf("Cawl Got Status Code %d.\n", http_resp.StatusCode)
