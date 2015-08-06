@@ -17,7 +17,7 @@ type Haixiu struct {
 }
 
 func (this *Haixiu) Start() {
-	resp, err := this.Cawl("http://www.douban.com/group/haixiuzu/discussion")
+	resp, err := this.Cawl("http://www.douban.com/group/haixiuzu/discussion", maodou.CAWL_NOPROXY)
 	if err == nil {
 		this.Index(resp)
 	}
@@ -60,17 +60,18 @@ func (this *Haixiu) Detail(resp *maodou.Response) {
 
 func (this *Haixiu) Result(result *models.Result) {
 	if result.Figure != "" {
-		Dao, err := dao.NewDao("duoshuo", `{"short_name":"cyeam","secret":"df66f048bd56cba5bf219b51766dec0d","thread_key":"haixiuzucyeam"}`)
+		var err error
+		this.Dao, err = dao.NewDao("duoshuo", `{"short_name":"cyeam","secret":"df66f048bd56cba5bf219b51766dec0d","thread_key":"haixiuzucyeam"}`)
 		if err != nil {
 			panic(err)
 		}
-		Dao.AddResult(result)
+		this.Dao.AddResult(result)
 	}
 }
 
 func main() {
 	haixiu := new(Haixiu)
 	haixiu.Init()
-	haixiu.SetRate(time.Duration(30)*time.Minute, time.Duration(5)*time.Second)
+	haixiu.SetRate(time.Duration(30) * time.Minute)
 	maodou.Register(haixiu)
 }

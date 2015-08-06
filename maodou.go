@@ -8,7 +8,6 @@ import (
 	"github.com/mnhkahn/maodou/dao"
 	"github.com/mnhkahn/maodou/logs"
 	"github.com/mnhkahn/maodou/models"
-	"github.com/mnhkahn/maodou/supervisor"
 )
 
 type Handler interface {
@@ -34,13 +33,13 @@ type HandlerConfig struct {
 }
 
 type MaoDou struct {
-	log        logs.LogContainer
-	Dao        dao.DaoContainer
-	req        *Request
-	resp       *Response
-	settings   *HandlerConfig
-	supervisor *supervisor.SupervisorController
-	Debug      bool
+	log      logs.LogContainer
+	Dao      dao.DaoContainer
+	req      *Request
+	resp     *Response
+	settings *HandlerConfig
+	// supervisor *supervisor.SupervisorController
+	Debug bool
 }
 
 func (this *MaoDou) SetRate(times ...time.Duration) {
@@ -71,7 +70,7 @@ func (this *MaoDou) Init() {
 	this.settings.cawl_every = 0
 	this.settings.interval = 0
 	this.settings.graceful_timeout = 1
-	this.supervisor = supervisor.NewSupervisorController()
+	// this.supervisor = supervisor.NewSupervisorController()
 	this.settings.dao_name = "sqlite"
 	this.settings.dsn = "./maodou"
 	this.req = NewRequest(0)
@@ -86,8 +85,8 @@ func (this *MaoDou) Start() {
 	log.Println("Start Method is not override.")
 }
 
-func (this *MaoDou) Cawl(url string) (*Response, error) {
-	return this.req.Cawl(url)
+func (this *MaoDou) Cawl(paras ...interface{}) (*Response, error) {
+	return this.req.Cawl(paras...)
 }
 
 func (this *MaoDou) Index(resp *Response) {
@@ -109,11 +108,11 @@ func (this *MaoDou) Config() *HandlerConfig {
 }
 
 func (this *MaoDou) Route(http_method, route string, function func(w http.ResponseWriter, req *http.Request)) {
-	this.supervisor.Route(http_method, route, function)
+	// this.supervisor.Route(http_method, route, function)
 }
 
 func (this *MaoDou) Serve(ip string, port int, graceful_timeout int) {
-	this.supervisor.Run(ip, port, graceful_timeout)
+	// this.supervisor.Run(ip, port, graceful_timeout)
 }
 
 func (this *MaoDou) Log(format string, a ...interface{}) {
