@@ -60,11 +60,12 @@ func (this *Haixiu) Detail(resp *maodou.Response) {
 
 func (this *Haixiu) Result(result *models.Result) {
 	if result.Figure != "" {
-		Dao, err := dao.NewDao("duoshuo", `{"short_name":"cyeam","secret":"df66f048bd56cba5bf219b51766dec0d","thread_key":"haixiuzucyeam"}`)
+		var err error
+		this.Dao, err = dao.NewDao("duoshuo", `{"short_name":"cyeam","secret":"df66f048bd56cba5bf219b51766dec0d","thread_key":"haixiuzucyeam"}`)
 		if err != nil {
 			panic(err)
 		}
-		Dao.AddResult(result)
+		this.Dao.AddResult(result)
 	}
 }
 

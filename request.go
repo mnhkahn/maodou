@@ -41,7 +41,9 @@ func NewRequest(interval time.Duration) *Request {
 					p := new(ProxyConfig)
 					p.ip = s.Children().Get(1).FirstChild.Data
 					p.port, _ = strconv.Atoi(s.Children().Get(2).FirstChild.Data)
-					p.location = s.Children().Get(3).FirstChild.Data
+					if s.Children().Get(3).FirstChild != nil {
+						p.location = s.Children().Get(3).FirstChild.Data
+					}
 					p.safe = s.Children().Get(4).FirstChild.Data == "高匿"
 					p.schema = s.Children().Get(5).FirstChild.Data
 					p.verifytime = s.Children().Get(6).FirstChild.Data

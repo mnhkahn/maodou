@@ -30,7 +30,7 @@ func (this *Duokan) Start() {
 }
 
 func (this *Duokan) Index(resp *maodou.Response) {
-	resp, err := this.Cawl("http://www.duokan.com/book/39392")
+	resp, err := this.Cawl("http://www.duokan.com/book/39392", maodou.CAWL_NOPROXY)
 	if err == nil {
 		this.Detail(resp)
 	}
