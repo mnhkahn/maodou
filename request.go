@@ -10,8 +10,6 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/franela/goreq"
-
-	// "github.com/mnhkahn/maodou/proxy"
 )
 
 type Request struct {
@@ -82,6 +80,8 @@ func (this *Request) Cawl(paras ...interface{}) (*Response, error) {
 	log.Println("Start to Parse: ", this.Uri, "proxy:", this.Proxy)
 
 	http_resp, err := this.Do()
+	// 修复代理错乱的问题，需要重置代理
+	this.Proxy = ""
 	if err != nil {
 		this.proxy_index = (this.proxy_index + 1) % len(this.proxies)
 		log.Printf("Cawl Error: %s\n", err.Error())
