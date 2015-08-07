@@ -4,9 +4,11 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/franela/goreq"
-	. "github.com/mnhkahn/maodou/models"
 	"log"
+
+	"github.com/franela/goreq"
+
+	. "github.com/mnhkahn/maodou/models"
 )
 
 type DuoShuoConfig struct {

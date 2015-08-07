@@ -18,7 +18,7 @@ type Haixiu struct {
 }
 
 func (this *Haixiu) Start() {
-	resp, err := this.Cawl("http://www.douban.com/group/haixiuzu/discussion", maodou.CAWL_NOPROXY)
+	resp, err := this.Cawl("http://www.douban.com/group/haixiuzu/discussion")
 	if err == nil {
 		this.Index(resp)
 	}
@@ -75,5 +75,6 @@ func main() {
 	haixiu := new(Haixiu)
 	haixiu.Init()
 	haixiu.SetRate(time.Duration(30) * time.Minute)
+	haixiu.SetProxy("xici", `{"max_cawl_cnt":12,"cnt":10,"min_cnt":1,"root":"http://www.douban.com/group/haixiuzu/discussion"}`)
 	maodou.Register(haixiu)
 }

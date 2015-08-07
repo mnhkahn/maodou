@@ -5,19 +5,18 @@ import (
 	"log"
 	"net/http"
 	urlpkg "net/url"
-	"strconv"
 	"time"
 
-	"github.com/PuerkitoBio/goquery"
 	"github.com/franela/goreq"
+
+	"github.com/mnhkahn/maodou/request/proxy"
 )
 
 type Request struct {
 	goreq.Request
-	proxies     []*ProxyConfig
-	proxy_index int
-	root        string
-	Interval    time.Duration
+	proxy    proxy.ProxyContainer
+	root     string
+	Interval time.Duration
 }
 
 func NewRequest(interval time.Duration) *Request {
@@ -30,26 +29,6 @@ func NewRequest(interval time.Duration) *Request {
 	req.AddHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
 	req.Interval = interval
 	// req.ShowDebug = true
-
-	if len(req.proxies) == 0 {
-		resp, _ := req.Cawl("http://www.xici.net.co/")
-		if resp != nil {
-			resp.Doc(`#ip_list > tbody > tr`).Each(func(i int, s *goquery.Selection) {
-				if i > 1 && len(req.proxies) < 10 && s.Children().Length() == 7 {
-					p := new(ProxyConfig)
-					p.ip = s.Children().Get(1).FirstChild.Data
-					p.port, _ = strconv.Atoi(s.Children().Get(2).FirstChild.Data)
-					if s.Children().Get(3).FirstChild != nil {
-						p.location = s.Children().Get(3).FirstChild.Data
-					}
-					p.safe = s.Children().Get(4).FirstChild.Data == "高匿"
-					p.schema = s.Children().Get(5).FirstChild.Data
-					p.verifytime = s.Children().Get(6).FirstChild.Data
-					req.proxies = append(req.proxies, p)
-				}
-			})
-		}
-	}
 
 	return req
 }
@@ -69,12 +48,15 @@ func (this *Request) Cawl(paras ...interface{}) (*Response, error) {
 		this.AddHeader("Referer", this.root)
 	}
 
-	if len(this.proxies) > 0 && (len(paras) == 1 || (len(paras) == 2 && paras[1].(int) == CAWL_PROXY)) {
+	var p *proxy.ProxyConfig
+	if len(paras) == 1 || (len(paras) == 2 && paras[1].(int) == CAWL_PROXY) {
 		u := new(urlpkg.URL)
-		p := this.proxies[this.proxy_index]
-		u.Scheme = "http"
-		u.Host = fmt.Sprintf("%s:%d", p.ip, p.port)
-		this.Proxy = u.String()
+		p := this.proxy.One()
+		if p.Ip != "" {
+			u.Scheme = "http"
+			u.Host = fmt.Sprintf("%s:%d", p.Ip, p.Port)
+			this.Proxy = u.String()
+		}
 	}
 
 	log.Println("Start to Parse: ", this.Uri, "proxy:", this.Proxy)
@@ -83,7 +65,9 @@ func (this *Request) Cawl(paras ...interface{}) (*Response, error) {
 	// 修复代理错乱的问题，需要重置代理
 	this.Proxy = ""
 	if err != nil {
-		this.proxy_index = (this.proxy_index + 1) % len(this.proxies)
+		if len(paras) == 1 || (len(paras) == 2 && paras[1].(int) == CAWL_PROXY) {
+			this.proxy.DeleteProxy(p.Id)
+		}
 		log.Printf("Cawl Error: %s\n", err.Error())
 		return nil, err
 	}
@@ -98,7 +82,9 @@ func (this *Request) Cawl(paras ...interface{}) (*Response, error) {
 			log.Println("Cawl Success.")
 		}
 	} else {
-		this.proxy_index = (this.proxy_index + 1) % len(this.proxies)
+		if len(paras) == 1 || (len(paras) == 2 && paras[1].(int) == CAWL_PROXY) {
+			this.proxy.DeleteProxy(p.Id)
+		}
 		if http_resp.StatusCode == http.StatusMovedPermanently || http_resp.StatusCode == http.StatusFound {
 			log.Println(this.Uri, http_resp.StatusCode)
 			return this.Cawl(http_resp.Header.Get("Location"))
@@ -114,15 +100,11 @@ func (this *Request) Cawl(paras ...interface{}) (*Response, error) {
 	return resp, nil
 }
 
-func (this *Request) DumpRequest() string {
-	return this.Uri + "?" + urlpkg.Values(this.QueryString.(urlpkg.Values)).Encode()
+func (this *Request) InitProxy(proxy_name, proxy_config string) {
+	this.proxy, _ = proxy.NewProxy(proxy_name, proxy_config)
+	this.proxy.Init()
 }
 
-type ProxyConfig struct {
-	ip         string
-	port       int
-	location   string
-	safe       bool
-	schema     string
-	verifytime string
+func (this *Request) DumpRequest() string {
+	return this.Uri + "?" + urlpkg.Values(this.QueryString.(urlpkg.Values)).Encode()
 }
