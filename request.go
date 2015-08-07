@@ -20,11 +20,10 @@ type Request struct {
 }
 
 func NewRequest(interval time.Duration) *Request {
-	goreq.SetConnectTimeout(time.Duration(60) * time.Second)
 	req := new(Request)
 	req.Method = "GET"
 	req.UserAgent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.89 Safari/537.36"
-	req.Timeout = time.Duration(60) * time.Second
+	req.Timeout = time.Duration(10) * time.Second
 	req.AddHeader("Accept-Language", "zh-CN,zh;q=0.8,en;q=0.6,zh-TW;q=0.4")
 	req.AddHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
 	req.Interval = interval
@@ -51,7 +50,7 @@ func (this *Request) Cawl(paras ...interface{}) (*Response, error) {
 	var p *proxy.ProxyConfig
 	if len(paras) == 1 || (len(paras) == 2 && paras[1].(int) == CAWL_PROXY) {
 		u := new(urlpkg.URL)
-		p := this.proxy.One()
+		p = this.proxy.One()
 		if p.Ip != "" {
 			u.Scheme = "http"
 			u.Host = fmt.Sprintf("%s:%d", p.Ip, p.Port)
