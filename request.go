@@ -23,7 +23,7 @@ func NewRequest(interval time.Duration) *Request {
 	req := new(Request)
 	req.Method = "GET"
 	req.UserAgent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.89 Safari/537.36"
-	req.Timeout = time.Duration(10) * time.Second
+	req.Timeout = time.Duration(30) * time.Second
 	req.AddHeader("Accept-Language", "zh-CN,zh;q=0.8,en;q=0.6,zh-TW;q=0.4")
 	req.AddHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
 	req.Interval = interval
