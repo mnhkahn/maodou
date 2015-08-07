@@ -35,6 +35,7 @@ func NewRequest(interval time.Duration) *Request {
 const (
 	CAWL_NOPROXY = 0
 	CAWL_PROXY   = 1
+	CAWL_RETRY   = 2
 )
 
 func (this *Request) Cawl(paras ...interface{}) (*Response, error) {
@@ -68,15 +69,27 @@ func (this *Request) Cawl(paras ...interface{}) (*Response, error) {
 			this.proxy.DeleteProxy(p.Id)
 		}
 		log.Printf("Cawl Error: %s\n", err.Error())
-		return nil, err
+
+		// Retry
+		if paras[1].(int) == CAWL_RETRY {
+			log.Println("Retry...")
+			this.Cawl(paras...)
+		} else {
+			return nil, err
+		}
 	}
 
 	var resp *Response
 	if http_resp.StatusCode == http.StatusOK {
 		resp, err = NewResponse(http_resp.Body, this.Uri)
 		if err != nil {
-			log.Printf("Cawl Error: %s.\n", err.Error())
-			return resp, err
+			if paras[1].(int) == CAWL_RETRY {
+				log.Println("Retry...")
+				this.Cawl(paras...)
+			} else {
+				log.Printf("Cawl Error: %s.\n", err.Error())
+				return resp, err
+			}
 		} else {
 			log.Println("Cawl Success.")
 		}
@@ -84,12 +97,17 @@ func (this *Request) Cawl(paras ...interface{}) (*Response, error) {
 		if len(paras) == 1 || (len(paras) == 2 && paras[1].(int) == CAWL_PROXY) {
 			this.proxy.DeleteProxy(p.Id)
 		}
-		if http_resp.StatusCode == http.StatusMovedPermanently || http_resp.StatusCode == http.StatusFound {
-			log.Println(this.Uri, http_resp.StatusCode)
-			return this.Cawl(http_resp.Header.Get("Location"))
+		if paras[1].(int) == CAWL_RETRY {
+			log.Println("Retry...")
+			this.Cawl(paras...)
 		} else {
-			log.Printf("Cawl Got Status Code %d.\n", http_resp.StatusCode)
-			return resp, fmt.Errorf("Cawl Got Status Code %d.", http_resp.StatusCode)
+			if http_resp.StatusCode == http.StatusMovedPermanently || http_resp.StatusCode == http.StatusFound {
+				log.Println(this.Uri, http_resp.StatusCode)
+				return this.Cawl(http_resp.Header.Get("Location"))
+			} else {
+				log.Printf("Cawl Got Status Code %d.\n", http_resp.StatusCode)
+				return resp, fmt.Errorf("Cawl Got Status Code %d.", http_resp.StatusCode)
+			}
 		}
 	}
 
