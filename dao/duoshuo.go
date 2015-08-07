@@ -58,7 +58,7 @@ func (this *DuoShuoDaoContainer) AddResult(p *Result) {
 	if resp == nil || resp.StatusCode != 200 {
 		var err_str string
 		if resp != nil {
-			err_str, _ = resp.Body.ToString()
+			err_str, _ = fmt.Sprintf("%d %s", resp.StatusCode, resp.Body.ToString())
 		}
 		log.Printf("Error: %s\n", err_str)
 	} else {
