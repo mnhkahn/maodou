@@ -108,7 +108,6 @@ func (this *XiciProxyContainer) DeleteProxy(i int) {
 	for idx, temp := range this.proxies {
 		if temp.Id == i {
 			log.Printf("Delete proxy %v", temp)
-			log.Println(idx, len(this.proxies), "===============")
 			this.proxies = append(this.proxies[:idx], this.proxies[idx+1:]...)
 			break
 		}

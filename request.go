@@ -71,7 +71,7 @@ func (this *Request) Cawl(paras ...interface{}) (*Response, error) {
 		log.Printf("Cawl Error: %s\n", err.Error())
 
 		// Retry
-		if paras[1].(int) == CAWL_RETRY {
+		if len(paras) == 2 && paras[1].(int) == CAWL_RETRY {
 			log.Println("Retry...")
 			this.Cawl(paras...)
 		} else {
@@ -83,7 +83,7 @@ func (this *Request) Cawl(paras ...interface{}) (*Response, error) {
 	if http_resp.StatusCode == http.StatusOK {
 		resp, err = NewResponse(http_resp.Body, this.Uri)
 		if err != nil {
-			if paras[1].(int) == CAWL_RETRY {
+			if len(paras) == 2 && paras[1].(int) == CAWL_RETRY {
 				log.Println("Retry...")
 				this.Cawl(paras...)
 			} else {
@@ -97,7 +97,7 @@ func (this *Request) Cawl(paras ...interface{}) (*Response, error) {
 		if len(paras) == 1 || (len(paras) == 2 && paras[1].(int) == CAWL_PROXY) {
 			this.proxy.DeleteProxy(p.Id)
 		}
-		if paras[1].(int) == CAWL_RETRY {
+		if len(paras) == 2 && paras[1].(int) == CAWL_RETRY {
 			log.Println("Retry...")
 			this.Cawl(paras...)
 		} else {
