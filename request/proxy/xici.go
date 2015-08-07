@@ -73,6 +73,7 @@ func (this *XiciProxyContainer) init() {
 }
 
 func (this *XiciProxyContainer) add(p *ProxyConfig) {
+	log.Printf("Got proxy %v.", p)
 	exist_flag := false
 	for _, temp := range this.proxies {
 		if temp.Ip == p.Ip {
