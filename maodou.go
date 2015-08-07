@@ -29,6 +29,8 @@ type HandlerConfig struct {
 	ip               string
 	port             int
 	graceful_timeout int
+	// proxy_name       string
+	// proxy_dsn        string
 }
 
 type MaoDou struct {
@@ -47,6 +49,11 @@ func (this *MaoDou) SetRate(times ...time.Duration) {
 		this.settings.cawl_every = times[0]
 		this.req.Interval = times[1]
 	}
+}
+
+func (this *MaoDou) SetProxy(proxy_name, proxy_dsn string) {
+	// this.settings.proxy_name, this.settings.proxy_dsn = proxy_name, proxy_dsn
+	this.req.InitProxy(proxy_name, proxy_dsn)
 }
 
 func (this *MaoDou) SetServe(ip string, port int, graceful_timeout int) {
