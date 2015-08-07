@@ -2,10 +2,12 @@ package maodou
 
 import (
 	"errors"
-	"github.com/PuerkitoBio/goquery"
-	"github.com/mnhkahn/maodou/parser"
 	"golang.org/x/net/html"
 	"io"
+
+	"github.com/PuerkitoBio/goquery"
+
+	"github.com/mnhkahn/maodou/parser"
 )
 
 type Response struct {
