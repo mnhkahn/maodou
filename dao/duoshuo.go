@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/franela/goreq"
 
@@ -46,6 +47,7 @@ func (this *DuoShuoDaoContainer) AddResult(p *Result) {
 	this.req.Method = "POST"
 	this.req.Uri = "http://api.duoshuo.com/posts/import.json"
 	this.req.ContentType = "application/x-www-form-urlencoded"
+	this.req.Timeout = time.Duration(10) * time.Second
 
 	duoshuo_byte, _ := json.Marshal(*p)
 	this.req.Body = fmt.Sprintf("short_name=%s&secret=%s&posts[0][post_key]=%s&posts[0][thread_key]=%s&posts[0][message]=%s", this.config.ShortName, this.config.Secret, p.Id, this.config.ThreadKey, base64.URLEncoding.EncodeToString(duoshuo_byte))
@@ -57,8 +59,9 @@ func (this *DuoShuoDaoContainer) AddResult(p *Result) {
 		var err_str string
 		if resp != nil {
 			err_str, _ = resp.Body.ToString()
+			err_str = fmt.Sprintf("%d %s", resp.StatusCode, err_str)
 		}
-		log.Printf("Error: %d, %s\n", resp.StatusCode, err_str)
+		log.Printf("Error: %s\n", err_str)
 	} else {
 		log.Println("Add to DuoShuo Success.")
 	}

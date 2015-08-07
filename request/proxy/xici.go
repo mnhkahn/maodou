@@ -6,6 +6,7 @@ import (
 	"golang.org/x/net/html"
 	"log"
 	"math/rand"
+	urlpkg "net/url"
 	"strconv"
 
 	"github.com/PuerkitoBio/goquery"
@@ -62,12 +63,26 @@ func (this *XiciProxyContainer) init() {
 				p.VerifyTime = s.Children().Get(6).FirstChild.Data
 				if this.TestProxy(p) {
 					p.Id = len(this.proxies)
-					this.proxies = append(this.proxies, p)
+					this.add(p)
 				}
 			}
 		})
 	} else {
 		log.Println(err)
+	}
+}
+
+func (this *XiciProxyContainer) add(p *ProxyConfig) {
+	log.Printf("Got proxy %v.", p)
+	exist_flag := false
+	for _, temp := range this.proxies {
+		if temp.Ip == p.Ip {
+			exist_flag = true
+			break
+		}
+	}
+	if !exist_flag {
+		this.proxies = append(this.proxies, p)
 	}
 }
 
@@ -90,7 +105,14 @@ func (this *XiciProxyContainer) Len() int {
 }
 
 func (this *XiciProxyContainer) DeleteProxy(i int) {
-	this.proxies = append(this.proxies[:i], this.proxies[i+1:]...)
+	for idx, temp := range this.proxies {
+		if temp.Id == i {
+			log.Printf("Delete proxy %v", temp)
+			this.proxies = append(this.proxies[:idx], this.proxies[idx+1:]...)
+			break
+		}
+	}
+
 	if len(this.proxies) <= this.config.MinCnt {
 		this.Init()
 	}
@@ -98,7 +120,13 @@ func (this *XiciProxyContainer) DeleteProxy(i int) {
 
 // true means proxy is OK
 func (this *XiciProxyContainer) TestProxy(p *ProxyConfig) bool {
-	_, err := goreq.Request{Uri: this.config.Root}.Do()
+	if p.Ip == "" {
+		return false
+	}
+	u := new(urlpkg.URL)
+	u.Scheme = "http"
+	u.Host = fmt.Sprintf("%s:%d", p.Ip, p.Port)
+	_, err := goreq.Request{Uri: this.config.Root, Proxy: u.String()}.Do()
 	if err != nil {
 		return false
 	}
