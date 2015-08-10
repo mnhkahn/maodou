@@ -29,6 +29,8 @@ func NewRequest(interval time.Duration) *Request {
 	req.Interval = interval
 	// req.ShowDebug = true
 
+	goreq.SetConnectTimeout(5 * time.Second)
+
 	return req
 }
 
