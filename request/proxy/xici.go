@@ -9,6 +9,7 @@ import (
 	"net/http"
 	urlpkg "net/url"
 	"strconv"
+	"time"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/franela/goreq"
