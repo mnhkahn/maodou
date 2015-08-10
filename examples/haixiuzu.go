@@ -32,6 +32,8 @@ func (this *Haixiu) Index(resp *maodou.Response) {
 			resp, err := this.Cawl(href)
 			if err == nil {
 				this.Detail(resp)
+			} else {
+				log.Println("Missing err with", err)
 			}
 		}
 	})
