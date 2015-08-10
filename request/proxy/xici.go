@@ -6,6 +6,7 @@ import (
 	"golang.org/x/net/html"
 	"log"
 	"math/rand"
+	"net/http"
 	urlpkg "net/url"
 	"strconv"
 
@@ -126,8 +127,8 @@ func (this *XiciProxyContainer) TestProxy(p *ProxyConfig) bool {
 	u := new(urlpkg.URL)
 	u.Scheme = "http"
 	u.Host = fmt.Sprintf("%s:%d", p.Ip, p.Port)
-	_, err := goreq.Request{Uri: this.config.Root, Proxy: u.String()}.Do()
-	if err != nil {
+	res, err := goreq.Request{Uri: this.config.Root, Proxy: u.String()}.Do()
+	if err != nil && res != nil && res.StatusCode == http.StatusOK {
 		return false
 	}
 	return true
