@@ -7,8 +7,7 @@ import (
 	urlpkg "net/url"
 	"time"
 
-	"github.com/franela/goreq"
-
+	"github.com/mnhkahn/maodou/request/goreq"
 	"github.com/mnhkahn/maodou/request/proxy"
 )
 
@@ -47,7 +46,7 @@ func (this *Request) Cawl(paras ...interface{}) (*Response, error) {
 	if this.root == "" {
 		this.root = this.Uri
 	} else {
-		this.WithHeader("Referer", this.root)
+		this.UpdateHeader("Referer", this.root)
 	}
 
 	var p *proxy.ProxyConfig
@@ -61,7 +60,7 @@ func (this *Request) Cawl(paras ...interface{}) (*Response, error) {
 		}
 	}
 
-	log.Println("Start to Parse: ", this.Uri, "proxy:", this.Proxy)
+	log.Println("Start to Parse: ", this.Uri)
 
 	start := time.Now()
 	this.ShowDebug = true

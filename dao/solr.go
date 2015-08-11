@@ -4,7 +4,7 @@ import (
 	. "github.com/mnhkahn/maodou/models"
 	// "encoding/json"
 	"fmt"
-	"github.com/franela/goreq"
+	"github.com/mnhkahn/maodou/request/goreq"
 	"net/url"
 	"time"
 )

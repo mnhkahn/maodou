@@ -10,7 +10,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/franela/goreq"
+	"github.com/mnhkahn/maodou/request/goreq"
 
 	. "github.com/mnhkahn/maodou/models"
 )

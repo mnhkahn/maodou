@@ -15,6 +15,7 @@ type ProxyConfig struct {
 	Schema     string
 	VerifyTime string
 	Cnt        int
+	Delayed    time.Duration
 }
 
 type ProxyContainer interface {

@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/franela/goreq"
+	"github.com/mnhkahn/maodou/request/goreq"
 )
 
 type XiciConfig struct {
@@ -122,6 +122,7 @@ func (this *XiciProxyContainer) DeleteProxy(i int) {
 
 // true means proxy is OK
 func (this *XiciProxyContainer) TestProxy(p *ProxyConfig) bool {
+	start := time.Now()
 	if p.Ip == "" {
 		return false
 	}
@@ -130,8 +131,10 @@ func (this *XiciProxyContainer) TestProxy(p *ProxyConfig) bool {
 	u.Host = fmt.Sprintf("%s:%d", p.Ip, p.Port)
 	res, err := goreq.Request{Uri: this.config.Root, Proxy: u.String(), Timeout: time.Duration(5) * time.Second}.Do()
 	if err != nil || res == nil || res.StatusCode != http.StatusOK {
+		p.Delayed = time.Now().Sub(start)
 		return false
 	}
+	p.Delayed = time.Now().Sub(start)
 	return true
 }
 

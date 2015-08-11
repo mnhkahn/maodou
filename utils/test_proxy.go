@@ -6,7 +6,7 @@ import (
 	urlpkg "net/url"
 	"time"
 
-	"github.com/franela/goreq"
+	"github.com/mnhkahn/maodou/request/goreq"
 )
 
 var host = flag.String("h", "host", "")
