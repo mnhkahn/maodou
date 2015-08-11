@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"golang.org/x/net/html"
 	"log"
-	"math/rand"
 	"net/http"
 	urlpkg "net/url"
+	"sort"
 	"strconv"
 	"time"
 
@@ -40,7 +40,7 @@ func (this *XiciProxy) NewProxyImpl(dsn string) (ProxyContainer, error) {
 type XiciProxyContainer struct {
 	config  *XiciConfig
 	req     goreq.Request
-	proxies []*ProxyConfig
+	proxies ProxyConfigs
 }
 
 func (this *XiciProxyContainer) Init() {
@@ -92,18 +92,24 @@ func (this *XiciProxyContainer) One() *ProxyConfig {
 	if len(this.proxies) == 0 {
 		return new(ProxyConfig)
 	}
-	i := rand.Intn(len(this.proxies))
-	p := this.proxies[i]
+
+	sort.Sort(this.proxies)
+	p := this.proxies[0]
 	p.Cnt++
 
 	if p.Cnt >= this.config.MaxCawlCnt {
-		this.DeleteProxy(i)
+		this.DeleteProxy(0)
 	}
 	return p
 }
 
 func (this *XiciProxyContainer) Len() int {
 	return len(this.proxies)
+}
+
+func (this *XiciProxyContainer) Update(p *ProxyConfig) {
+	p.Delayed = p.Delayed / time.Duration(p.Cnt+1)
+	this.add(p)
 }
 
 func (this *XiciProxyContainer) DeleteProxy(i int) {

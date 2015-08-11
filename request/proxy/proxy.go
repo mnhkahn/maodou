@@ -2,7 +2,6 @@ package proxy
 
 import (
 	"fmt"
-	"math/rand"
 	"time"
 )
 
@@ -18,10 +17,22 @@ type ProxyConfig struct {
 	Delayed    time.Duration
 }
 
+type ProxyConfigs []*ProxyConfig
+
+func (a ProxyConfigs) Len() int      { return len(a) }
+func (a ProxyConfigs) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
+func (a ProxyConfigs) Less(i, j int) bool {
+	if a[i].Cnt == a[j].Cnt {
+		return a[i].Delayed < a[j].Delayed
+	}
+	return a[i].Cnt < a[j].Cnt
+}
+
 type ProxyContainer interface {
 	Init()
 	One() *ProxyConfig
 	Len() int
+	Update(p *ProxyConfig)
 	DeleteProxy(i int)
 }
 
@@ -47,8 +58,4 @@ func NewProxy(proxy_name, dsn string) (ProxyContainer, error) {
 		return nil, fmt.Errorf("parser: unknown proxy_name %q", proxy_name)
 	}
 	return proxy.NewProxyImpl(dsn)
-}
-
-func init() {
-	rand.Seed(time.Now().UnixNano())
 }
