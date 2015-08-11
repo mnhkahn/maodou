@@ -129,7 +129,7 @@ func (this *XiciProxyContainer) TestProxy(p *ProxyConfig) bool {
 	u.Scheme = "http"
 	u.Host = fmt.Sprintf("%s:%d", p.Ip, p.Port)
 	res, err := goreq.Request{Uri: this.config.Root, Proxy: u.String(), Timeout: time.Duration(5) * time.Second}.Do()
-	if err != nil && res != nil && res.StatusCode == http.StatusOK {
+	if err != nil || res == nil || res.StatusCode != http.StatusOK {
 		return false
 	}
 	return true
