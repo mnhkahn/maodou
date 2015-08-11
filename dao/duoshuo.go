@@ -5,9 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"net"
 	"net/http"
-	"net/url"
 	"time"
 
 	"github.com/mnhkahn/maodou/request/goreq"
