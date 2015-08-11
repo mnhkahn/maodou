@@ -20,6 +20,6 @@ func main() {
 	u := new(urlpkg.URL)
 	u.Scheme = "http"
 	u.Host = *host
-	res, err := goreq.Request{Uri: *url, Proxy: u.String(), Timeout: time.Duration(5) * time.Second, ShowDebug: true}.Do()
+	res, err := goreq.Request{Uri: *url, UserAgent: "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.89 Safari/537.36", Proxy: u.String(), Timeout: time.Duration(5) * time.Second, ShowDebug: true}.Do()
 	log.Println(res.Status, err)
 }
