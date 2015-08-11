@@ -68,6 +68,8 @@ func (this *Haixiu) Result(result *models.Result) {
 			panic(err)
 		}
 		this.Dao.AddResult(result)
+	} else {
+		log.Println("No pic for save.")
 	}
 }
 

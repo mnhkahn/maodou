@@ -7,8 +7,8 @@ import (
 	urlpkg "net/url"
 	"time"
 
-	"github.com/franela/goreq"
-
+	"github.com/mnhkahn/maodou/request"
+	"github.com/mnhkahn/maodou/request/goreq"
 	"github.com/mnhkahn/maodou/request/proxy"
 )
 
@@ -22,12 +22,13 @@ type Request struct {
 func NewRequest(interval time.Duration) *Request {
 	req := new(Request)
 	req.Method = "GET"
-	req.UserAgent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.89 Safari/537.36"
-	req.Timeout = time.Duration(10) * time.Second
+	req.Timeout = time.Duration(30) * time.Second
 	req.AddHeader("Accept-Language", "zh-CN,zh;q=0.8,en;q=0.6,zh-TW;q=0.4")
 	req.AddHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
 	req.Interval = interval
 	// req.ShowDebug = true
+
+	goreq.SetConnectTimeout(5 * time.Second)
 
 	return req
 }
@@ -35,6 +36,7 @@ func NewRequest(interval time.Duration) *Request {
 const (
 	CAWL_NOPROXY = 0
 	CAWL_PROXY   = 1
+	CAWL_RETRY   = 2
 )
 
 func (this *Request) Cawl(paras ...interface{}) (*Response, error) {
@@ -44,7 +46,7 @@ func (this *Request) Cawl(paras ...interface{}) (*Response, error) {
 	if this.root == "" {
 		this.root = this.Uri
 	} else {
-		this.AddHeader("Referer", this.root)
+		this.UpdateHeader("Referer", this.root)
 	}
 
 	var p *proxy.ProxyConfig
@@ -58,9 +60,13 @@ func (this *Request) Cawl(paras ...interface{}) (*Response, error) {
 		}
 	}
 
-	log.Println("Start to Parse: ", this.Uri, "proxy:", this.Proxy)
+	log.Println("Start to Parse: ", this.Uri)
 
+	start := time.Now()
+	this.ShowDebug = true
+	this.UserAgent = request.UserAgent()
 	http_resp, err := this.Do()
+	log.Printf("Cawl use %v.\n", time.Now().Sub(start))
 	// 修复代理错乱的问题，需要重置代理
 	this.Proxy = ""
 	if err != nil {
@@ -68,15 +74,27 @@ func (this *Request) Cawl(paras ...interface{}) (*Response, error) {
 			this.proxy.DeleteProxy(p.Id)
 		}
 		log.Printf("Cawl Error: %s\n", err.Error())
-		return nil, err
+
+		// Retry
+		if len(paras) == 2 && paras[1].(int) == CAWL_RETRY {
+			log.Println("Retry...")
+			this.Cawl(paras...)
+		} else {
+			return nil, err
+		}
 	}
 
 	var resp *Response
 	if http_resp.StatusCode == http.StatusOK {
 		resp, err = NewResponse(http_resp.Body, this.Uri)
 		if err != nil {
-			log.Printf("Cawl Error: %s.\n", err.Error())
-			return resp, err
+			if len(paras) == 2 && paras[1].(int) == CAWL_RETRY {
+				log.Println("Retry...")
+				this.Cawl(paras...)
+			} else {
+				log.Printf("Cawl Error: %s.\n", err.Error())
+				return resp, err
+			}
 		} else {
 			log.Println("Cawl Success.")
 		}
@@ -84,12 +102,17 @@ func (this *Request) Cawl(paras ...interface{}) (*Response, error) {
 		if len(paras) == 1 || (len(paras) == 2 && paras[1].(int) == CAWL_PROXY) {
 			this.proxy.DeleteProxy(p.Id)
 		}
-		if http_resp.StatusCode == http.StatusMovedPermanently || http_resp.StatusCode == http.StatusFound {
-			log.Println(this.Uri, http_resp.StatusCode)
-			return this.Cawl(http_resp.Header.Get("Location"))
+		if len(paras) == 2 && paras[1].(int) == CAWL_RETRY {
+			log.Println("Retry...")
+			this.Cawl(paras...)
 		} else {
-			log.Printf("Cawl Got Status Code %d.\n", http_resp.StatusCode)
-			return resp, fmt.Errorf("Cawl Got Status Code %d.", http_resp.StatusCode)
+			if http_resp.StatusCode == http.StatusMovedPermanently || http_resp.StatusCode == http.StatusFound {
+				log.Println(this.Uri, http_resp.StatusCode)
+				return this.Cawl(http_resp.Header.Get("Location"))
+			} else {
+				log.Printf("Cawl Got Status Code %d.\n", http_resp.StatusCode)
+				return resp, fmt.Errorf("Cawl Got Status Code %d.", http_resp.StatusCode)
+			}
 		}
 	}
 

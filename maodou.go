@@ -2,6 +2,7 @@ package maodou
 
 import (
 	"log"
+	"math/rand"
 	"net/http"
 	"time"
 
@@ -171,4 +172,8 @@ func (this *App) run() {
 func Register(handler Handler) {
 	APP = NewController(handler)
 	APP.Run()
+}
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
 }

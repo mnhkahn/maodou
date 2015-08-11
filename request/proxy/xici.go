@@ -5,12 +5,14 @@ import (
 	"fmt"
 	"golang.org/x/net/html"
 	"log"
-	"math/rand"
+	"net/http"
 	urlpkg "net/url"
+	"sort"
 	"strconv"
+	"time"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/franela/goreq"
+	"github.com/mnhkahn/maodou/request/goreq"
 )
 
 type XiciConfig struct {
@@ -38,7 +40,7 @@ func (this *XiciProxy) NewProxyImpl(dsn string) (ProxyContainer, error) {
 type XiciProxyContainer struct {
 	config  *XiciConfig
 	req     goreq.Request
-	proxies []*ProxyConfig
+	proxies ProxyConfigs
 }
 
 func (this *XiciProxyContainer) Init() {
@@ -90,18 +92,24 @@ func (this *XiciProxyContainer) One() *ProxyConfig {
 	if len(this.proxies) == 0 {
 		return new(ProxyConfig)
 	}
-	i := rand.Intn(len(this.proxies))
-	p := this.proxies[i]
+
+	sort.Sort(this.proxies)
+	p := this.proxies[0]
 	p.Cnt++
 
 	if p.Cnt >= this.config.MaxCawlCnt {
-		this.DeleteProxy(i)
+		this.DeleteProxy(0)
 	}
 	return p
 }
 
 func (this *XiciProxyContainer) Len() int {
 	return len(this.proxies)
+}
+
+func (this *XiciProxyContainer) Update(p *ProxyConfig) {
+	p.Delayed = p.Delayed / time.Duration(p.Cnt+1)
+	this.add(p)
 }
 
 func (this *XiciProxyContainer) DeleteProxy(i int) {
@@ -120,16 +128,19 @@ func (this *XiciProxyContainer) DeleteProxy(i int) {
 
 // true means proxy is OK
 func (this *XiciProxyContainer) TestProxy(p *ProxyConfig) bool {
+	start := time.Now()
 	if p.Ip == "" {
 		return false
 	}
 	u := new(urlpkg.URL)
 	u.Scheme = "http"
 	u.Host = fmt.Sprintf("%s:%d", p.Ip, p.Port)
-	_, err := goreq.Request{Uri: this.config.Root, Proxy: u.String()}.Do()
-	if err != nil {
+	res, err := goreq.Request{Uri: this.config.Root, Proxy: u.String(), Timeout: time.Duration(5) * time.Second}.Do()
+	if err != nil || res == nil || res.StatusCode != http.StatusOK {
+		p.Delayed = time.Now().Sub(start)
 		return false
 	}
+	p.Delayed = time.Now().Sub(start)
 	return true
 }
 
