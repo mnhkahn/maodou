@@ -170,7 +170,6 @@ func Register(handler Handler) {
 func init() {
 	rand.Seed(time.Now().UnixNano())
 	println(CYEAM_LOG)
-	panic(1)
 }
 
 var CYEAM_LOG = `
