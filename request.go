@@ -47,7 +47,7 @@ func (this *Request) Cawl(paras ...interface{}) (*Response, error) {
 	if this.root == "" {
 		this.root = this.Uri
 	} else {
-		this.AddHeader("Referer", this.root)
+		this.WithHeader("Referer", this.root)
 	}
 
 	var p *proxy.ProxyConfig
