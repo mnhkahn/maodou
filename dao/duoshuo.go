@@ -5,9 +5,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net"
+	"net/http"
+	"net/url"
 	"time"
 
-	"github.com/franela/goreq"
+	"github.com/mnhkahn/maodou/request/goreq"
 
 	. "github.com/mnhkahn/maodou/models"
 )
@@ -47,7 +50,7 @@ func (this *DuoShuoDaoContainer) AddResult(p *Result) {
 	this.req.Method = "POST"
 	this.req.Uri = "http://api.duoshuo.com/posts/import.json"
 	this.req.ContentType = "application/x-www-form-urlencoded"
-	this.req.Timeout = time.Duration(10) * time.Second
+	this.req.Timeout = time.Duration(60) * time.Second
 
 	duoshuo_byte, _ := json.Marshal(*p)
 	this.req.Body = fmt.Sprintf("short_name=%s&secret=%s&posts[0][post_key]=%s&posts[0][thread_key]=%s&posts[0][message]=%s", this.config.ShortName, this.config.Secret, p.Id, this.config.ThreadKey, base64.URLEncoding.EncodeToString(duoshuo_byte))
@@ -55,7 +58,7 @@ func (this *DuoShuoDaoContainer) AddResult(p *Result) {
 	if err != nil {
 		log.Println(err.Error())
 	}
-	if resp == nil || resp.StatusCode != 200 {
+	if resp == nil || resp.StatusCode != http.StatusOK {
 		var err_str string
 		if resp != nil {
 			err_str, _ = resp.Body.ToString()

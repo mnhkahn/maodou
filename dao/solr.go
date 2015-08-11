@@ -4,7 +4,7 @@ import (
 	. "github.com/mnhkahn/maodou/models"
 	// "encoding/json"
 	"fmt"
-	"github.com/franela/goreq"
+	"github.com/mnhkahn/maodou/request/goreq"
 	"net/url"
 	"time"
 )
@@ -23,7 +23,7 @@ func (this *SolrDao) NewDaoImpl(dsn string) (DaoContainer, error) {
 		// Compression: goreq.Gzip(),
 	}
 	solr.solr_req.AddHeader("Accept-Language", "zh-CN,zh;q=0.8,en;q=0.6,zh-TW;q=0.4")
-	goreq.SetConnectTimeout(time.Duration(5) * time.Second)
+	// goreq.SetConnectTimeout(time.Duration(5) * time.Second)
 	return solr, nil
 }
 

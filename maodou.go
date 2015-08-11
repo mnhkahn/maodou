@@ -2,6 +2,7 @@ package maodou
 
 import (
 	"log"
+	"math/rand"
 	"net/http"
 	"time"
 
@@ -172,3 +173,18 @@ func Register(handler Handler) {
 	APP = NewController(handler)
 	APP.Run()
 }
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
+	println(CYEAM_LOG)
+	panic(1)
+}
+
+var CYEAM_LOG = `
+ ______                  _                    
+|  ___ \                | |                   
+| | _ | | ____  ___   _ | | ___  _   _              ____ _____   _   _   _ 
+| || || |/ _  |/ _ \ / || |/ _ \| | | |    ___     / _\ V / __| / \ | \_/ |  
+| || || ( ( | | |_| ( (_| | |_| | |_| |   (___)   ( (_ \ /| _| | o || \_/ |
+|_||_||_|\_||_|\___/ \____|\___/ \____|            \__||_||___||_n_||_| |_| 
+ `
