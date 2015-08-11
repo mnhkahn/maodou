@@ -63,7 +63,9 @@ func (this *Request) Cawl(paras ...interface{}) (*Response, error) {
 
 	log.Println("Start to Parse: ", this.Uri, "proxy:", this.Proxy)
 
+	start := time.Now()
 	http_resp, err := this.Do()
+	log.Printf("Cawl use %v.\n", time.Now().Sub(start))
 	// 修复代理错乱的问题，需要重置代理
 	this.Proxy = ""
 	if err != nil {
