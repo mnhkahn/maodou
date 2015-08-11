@@ -65,19 +65,6 @@ func (this *DuoShuoDaoContainer) AddResult(p *Result) {
 			err_str = fmt.Sprintf("%d %s", resp.StatusCode, err_str)
 		}
 		log.Printf("Error: %s\n", err_str)
-		log.Printf("type: %T\n", err)
-		log.Printf("error: %v\n", err)
-		if err2, ok := err.(*url.Error); ok {
-			log.Printf("inner type: %T\n", err2.Err)
-			log.Printf("inner error: %v\n", err2.Err)
-			if err3, ok := err2.Err.(net.Error); ok {
-				log.Printf("is timeout: %v\n", err3.Timeout())
-			}
-			if err4, ok := err2.Err.(*net.OpError); ok {
-				log.Printf("OpError inner type: %T\n", err4.Err)
-				log.Printf("OpError inner error: %v\n", err4.Err)
-			}
-		}
 	} else {
 		log.Println("Add to DuoShuo Success.")
 	}
