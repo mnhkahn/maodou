@@ -50,7 +50,7 @@ func (this *Request) Cawl(paras ...interface{}) (*Response, error) {
 	}
 
 	var p *proxy.ProxyConfig
-	if len(paras) == 1 || (len(paras) == 2 && paras[1].(int) == CAWL_PROXY) {
+	if this.proxy != nil && len(paras) == 1 || (len(paras) == 2 && paras[1].(int) == CAWL_PROXY) {
 		u := new(urlpkg.URL)
 		p = this.proxy.One()
 		if p.Ip != "" {
@@ -108,6 +108,9 @@ func (this *Request) Cawl(paras ...interface{}) (*Response, error) {
 		} else {
 			if http_resp.StatusCode == http.StatusMovedPermanently || http_resp.StatusCode == http.StatusFound {
 				log.Println(this.Uri, http_resp.StatusCode)
+				if len(paras) == 2 {
+					return this.Cawl(http_resp.Header.Get("Location"), paras[1])
+				}
 				return this.Cawl(http_resp.Header.Get("Location"))
 			} else {
 				log.Printf("Cawl Got Status Code %d.\n", http_resp.StatusCode)
