@@ -41,7 +41,7 @@ type DuoShuoDaoContainer struct {
 }
 
 func (this *DuoShuoDaoContainer) Debug(is_debug bool) {
-	this.req.ShowDebug = is_debug
+	this.req.ShowDebugDetail = is_debug
 }
 
 func (this *DuoShuoDaoContainer) AddResult(p *Result) {

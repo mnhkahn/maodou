@@ -9,7 +9,6 @@ import (
 
 	"github.com/mnhkahn/maodou"
 	"github.com/mnhkahn/maodou/cygo"
-	"github.com/mnhkahn/maodou/dao"
 	"github.com/mnhkahn/maodou/models"
 )
 
@@ -62,11 +61,6 @@ func (this *Haixiu) Detail(resp *maodou.Response) {
 
 func (this *Haixiu) Result(result *models.Result) {
 	if result.Figure != "" {
-		var err error
-		this.Dao, err = dao.NewDao("duoshuo", `{"short_name":"cyeam","secret":"df66f048bd56cba5bf219b51766dec0d","thread_key":"haixiuzucyeam"}`)
-		if err != nil {
-			panic(err)
-		}
 		this.Dao.AddResult(result)
 	} else {
 		log.Println("No pic for save.")
@@ -78,5 +72,7 @@ func main() {
 	haixiu.Init()
 	haixiu.SetRate(time.Duration(30) * time.Minute)
 	haixiu.SetProxy("xici", `{"max_cawl_cnt":12,"cnt":10,"min_cnt":1,"root":"http://www.douban.com/group/haixiuzu/discussion"}`)
+	haixiu.SetDao("duoshuo", `{"short_name":"cyeam","secret":"df66f048bd56cba5bf219b51766dec0d","thread_key":"haixiuzucyeam"}`)
+	haixiu.Dao.Debug(true)
 	maodou.Register(haixiu)
 }
