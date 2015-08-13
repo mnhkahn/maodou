@@ -24,11 +24,6 @@ type DuoShuoDao struct {
 
 func (this *DuoShuoDao) NewDaoImpl(dsn string) (DaoContainer, error) {
 	d := new(DuoShuoDaoContainer)
-	this.req.Method = "POST"
-	this.req.Uri = "http://api.duoshuo.com/posts/import.json"
-	this.req.ContentType = "application/x-www-form-urlencoded"
-	this.req.Timeout = time.Duration(60) * time.Second
-
 	config := new(DuoShuoConfig)
 	err := json.Unmarshal([]byte(dsn), config)
 	d.config = config
@@ -50,6 +45,11 @@ func (this *DuoShuoDaoContainer) Debug(is_debug bool) {
 }
 
 func (this *DuoShuoDaoContainer) AddResult(p *Result) {
+	this.req.Method = "POST"
+	this.req.Uri = "http://api.duoshuo.com/posts/import.json"
+	this.req.ContentType = "application/x-www-form-urlencoded"
+	this.req.Timeout = time.Duration(60) * time.Second
+
 	duoshuo_byte, _ := json.Marshal(*p)
 	this.req.Body = fmt.Sprintf("short_name=%s&secret=%s&posts[0][post_key]=%s&posts[0][thread_key]=%s&posts[0][message]=%s", this.config.ShortName, this.config.Secret, p.Id, this.config.ThreadKey, base64.URLEncoding.EncodeToString(duoshuo_byte))
 	resp, err := this.req.Do()
