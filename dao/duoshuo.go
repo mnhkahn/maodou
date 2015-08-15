@@ -53,6 +53,7 @@ func (this *DuoShuoDaoContainer) AddResult(p *Result) {
 	duoshuo_byte, _ := json.Marshal(*p)
 	this.req.Body = fmt.Sprintf("short_name=%s&secret=%s&posts[0][post_key]=%s&posts[0][thread_key]=%s&posts[0][message]=%s", this.config.ShortName, this.config.Secret, p.Id, this.config.ThreadKey, base64.URLEncoding.EncodeToString(duoshuo_byte))
 	resp, err := this.req.Do()
+	defer resp.Body.Close()
 	if err != nil {
 		log.Println(err.Error())
 	}
