@@ -50,7 +50,7 @@ func (this *Request) Cawl(paras ...interface{}) (*Response, error) {
 	}
 
 	var p *proxy.ProxyConfig
-	if this.proxy != nil && len(paras) == 1 || (len(paras) == 2 && paras[1].(int) == CAWL_PROXY) {
+	if this.proxy != nil && (len(paras) == 1 || (len(paras) == 2 && paras[1].(int) == CAWL_PROXY)) {
 		u := new(urlpkg.URL)
 		p = this.proxy.One()
 		if p.Ip != "" {
