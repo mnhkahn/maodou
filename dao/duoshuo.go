@@ -4,13 +4,13 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	// "io/ioutil"
 	"log"
 	"net/http"
-	"strings"
-	// "time"
+	// "strings"
+	"time"
 
-	// "github.com/mnhkahn/maodou/request/goreq"
+	"github.com/mnhkahn/maodou/request/goreq"
 
 	. "github.com/mnhkahn/maodou/models"
 )
@@ -39,7 +39,7 @@ func (this *DuoShuoDao) NewDaoImpl(dsn string) (DaoContainer, error) {
 type DuoShuoDaoContainer struct {
 	config   *DuoShuoConfig
 	is_debug bool
-	// req      goreq.Request
+	req      goreq.Request
 }
 
 func (this *DuoShuoDaoContainer) Debug(is_debug bool) {
@@ -47,47 +47,48 @@ func (this *DuoShuoDaoContainer) Debug(is_debug bool) {
 }
 
 func (this *DuoShuoDaoContainer) AddResult(p *Result) {
-	duoshuo_byte, _ := json.Marshal(*p)
-	resp, err := http.Post("http://api.duoshuo.com/posts/import.json", "application/x-www-form-urlencoded", strings.NewReader(fmt.Sprintf("short_name=%s&secret=%s&posts[0][post_key]=%s&posts[0][thread_key]=%s&posts[0][message]=%s", this.config.ShortName, this.config.Secret, p.Id, this.config.ThreadKey, base64.URLEncoding.EncodeToString(duoshuo_byte))))
-	if err != nil {
-		log.Println(err.Error())
-	}
-	resp.Body.Close()
-	if err != nil {
-		log.Fatal(err)
-	}
-	if resp == nil || resp.StatusCode != http.StatusOK {
-		var err_str string
-		if resp != nil {
-			err_str_byte, _ := ioutil.ReadAll(resp.Body)
-			err_str = fmt.Sprintf("%d %s", resp.StatusCode, string(err_str_byte))
-		}
-		log.Printf("Error: %s\n", err_str)
-	} else {
-		log.Println("Add to DuoShuo Success.")
-	}
-	// this.req.Method = "POST"
-	// this.req.Uri = "http://api.duoshuo.com/posts/import.json"
-	// this.req.ContentType = "application/x-www-form-urlencoded"
-	// this.req.Timeout = time.Duration(60) * time.Second
-
 	// duoshuo_byte, _ := json.Marshal(*p)
-	// this.req.Body = fmt.Sprintf("short_name=%s&secret=%s&posts[0][post_key]=%s&posts[0][thread_key]=%s&posts[0][message]=%s", this.config.ShortName, this.config.Secret, p.Id, this.config.ThreadKey, base64.URLEncoding.EncodeToString(duoshuo_byte))
-	// resp, err := this.req.Do()
-	// defer resp.Body.Close()
+	// resp, err := http.Post("http://api.duoshuo.com/posts/import.json", "application/x-www-form-urlencoded", strings.NewReader(fmt.Sprintf("short_name=%s&secret=%s&posts[0][post_key]=%s&posts[0][thread_key]=%s&posts[0][message]=%s", this.config.ShortName, this.config.Secret, p.Id, this.config.ThreadKey, base64.URLEncoding.EncodeToString(duoshuo_byte))))
 	// if err != nil {
 	// 	log.Println(err.Error())
+	// }
+	// resp.Body.Close()
+	// if err != nil {
+	// 	log.Fatal(err)
 	// }
 	// if resp == nil || resp.StatusCode != http.StatusOK {
 	// 	var err_str string
 	// 	if resp != nil {
-	// 		err_str, _ = resp.Body.ToString()
-	// 		err_str = fmt.Sprintf("%d %s", resp.StatusCode, err_str)
+	// 		err_str_byte, _ := ioutil.ReadAll(resp.Body)
+	// 		err_str = fmt.Sprintf("%d %s", resp.StatusCode, string(err_str_byte))
 	// 	}
 	// 	log.Printf("Error: %s\n", err_str)
 	// } else {
 	// 	log.Println("Add to DuoShuo Success.")
 	// }
+
+	this.req.Method = "POST"
+	this.req.Uri = "http://api.duoshuo.com/posts/import.json"
+	this.req.ContentType = "application/x-www-form-urlencoded"
+	this.req.Timeout = time.Duration(60) * time.Second
+
+	duoshuo_byte, _ := json.Marshal(*p)
+	this.req.Body = fmt.Sprintf("short_name=%s&secret=%s&posts[0][post_key]=%s&posts[0][thread_key]=%s&posts[0][message]=%s", this.config.ShortName, this.config.Secret, p.Id, this.config.ThreadKey, base64.URLEncoding.EncodeToString(duoshuo_byte))
+	resp, err := this.req.Do()
+	defer resp.Body.Close()
+	if err != nil {
+		log.Println(err.Error())
+	}
+	if resp == nil || resp.StatusCode != http.StatusOK {
+		var err_str string
+		if resp != nil {
+			err_str, _ = resp.Body.ToString()
+			err_str = fmt.Sprintf("%d %s", resp.StatusCode, err_str)
+		}
+		log.Printf("Error: %s\n", err_str)
+	} else {
+		log.Println("Add to DuoShuo Success.")
+	}
 }
 
 func (this *DuoShuoDaoContainer) AddResults(p []Result) {

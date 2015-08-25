@@ -136,11 +136,16 @@ func (this *XiciProxyContainer) TestProxy(p *ProxyConfig) bool {
 	u.Scheme = "http"
 	u.Host = fmt.Sprintf("%s:%d", p.Ip, p.Port)
 	res, err := goreq.Request{Uri: this.config.Root, Proxy: u.String(), Timeout: time.Duration(5) * time.Second}.Do()
+	p.Delayed = time.Now().Sub(start)
+	defer func() {
+		if res != nil {
+			res.Body.Close()
+		}
+	}()
 	if err != nil || res == nil || res.StatusCode != http.StatusOK {
-		p.Delayed = time.Now().Sub(start)
+		log.Println("Proxy test failed", p)
 		return false
 	}
-	p.Delayed = time.Now().Sub(start)
 	return true
 }
 
