@@ -48,7 +48,7 @@ func (this *XiciProxyContainer) Init() {
 }
 
 func (this *XiciProxyContainer) init() {
-	resp, err := goreq.Request{Uri: "http://www.xici.net.co/"}.Do()
+	resp, err := goreq.Request{Uri: "http://www.xicidaili.com/"}.Do()
 	if err == nil {
 		raw_document, _ := html.Parse(resp.Body)
 		document := goquery.NewDocumentFromNode(raw_document)
