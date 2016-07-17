@@ -2,17 +2,19 @@ package dao
 
 import (
 	"fmt"
+
 	. "github.com/mnhkahn/maodou/models"
 )
 
 type DaoContainer interface {
-	AddResult(p *Result)
+	AddResult(p *Result) error
 	AddResults(p []Result)
 	DelResult(id interface{})
 	DelResults(source string)
 	UpdateResult(p *Result)
 	AddOrUpdate(p *Result)
-	GetResultById(id int) *Result
+	GetResults() ([]*Result, error)
+	GetResultById(id uint64) (*Result, error)
 	GetResultByLink(url string) *Result
 	GetResult(author, sort string, limit, start int) []Result
 	IsResultUpdate(p *Result) bool

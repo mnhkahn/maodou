@@ -79,10 +79,10 @@ func (this *MaoDou) Init() {
 	this.settings.interval = 0
 	this.settings.graceful_timeout = 1
 	// this.supervisor = supervisor.NewSupervisorController()
-	this.settings.dao_name = "sqlite"
-	this.settings.dsn = "./maodou"
+	// this.settings.dao_name = "sqlite"
+	// this.settings.dsn = "./maodou"
 	this.req = NewRequest(0)
-	this.Dao, err = dao.NewDao(this.settings.dao_name, this.settings.dsn)
+	// this.Dao, err = dao.NewDao(this.settings.dao_name, this.settings.dsn)
 	this.log, _ = logs.NewLog("colorlog", "")
 	if err != nil {
 		panic(err)
