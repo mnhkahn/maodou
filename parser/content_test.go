@@ -502,7 +502,7 @@ var raw_text = `
 <h2 id="br-14"><br /></h2>
 
 <h2>
-    <a id="Apache Bench 压力测试" href="/test/2014/11/11/ab" target="_blank">
+    <a id="Apache Bench 压力测试" href="/demo/2014/11/11/ab" target="_blank">
         Apache Bench 压力测试
     </a>
 </h2>
@@ -514,7 +514,7 @@ var raw_text = `
 <p class="description">ab压力测试，说一下我的经验</p>
 
 <p class="read-all">
-    <a href="/test/2014/11/11/ab" target="_blank">
+    <a href="/demo/2014/11/11/ab" target="_blank">
         <span class="icon-resize-full">
         </span>
         阅读全文

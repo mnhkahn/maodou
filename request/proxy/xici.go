@@ -143,7 +143,7 @@ func (this *XiciProxyContainer) TestProxy(p *ProxyConfig) bool {
 		}
 	}()
 	if err != nil || res == nil || res.StatusCode != http.StatusOK {
-		log.Println("Proxy test failed", p)
+		log.Println("Proxy demo failed", p)
 		return false
 	}
 	return true
