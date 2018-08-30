@@ -25,6 +25,8 @@ github.com/mnhkahn/peanut v0.0.0-20180830083834-4b0ce468b4f3 h1:MsxWo97ApFYCFczG
 github.com/mnhkahn/peanut v0.0.0-20180830083834-4b0ce468b4f3/go.mod h1:z/P9SGuhOq6nOGkrGXYZR7UDUPHUSpAFTSmfA+tVKoA=
 github.com/mnhkahn/peanut v1.0.0 h1:FYUKpjDq34qVRUYMU3xJrBEvWyDC761dZo17hmqOER8=
 github.com/mnhkahn/peanut v1.0.0/go.mod h1:z/P9SGuhOq6nOGkrGXYZR7UDUPHUSpAFTSmfA+tVKoA=
+github.com/mnhkahn/peanut v1.0.1 h1:qRNT4lRsWPqxi26in00YYE27r3f9cwSDDW/JK+F/JxY=
+github.com/mnhkahn/peanut v1.0.1/go.mod h1:z/P9SGuhOq6nOGkrGXYZR7UDUPHUSpAFTSmfA+tVKoA=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/sasbury/mini v0.0.0-20161224193750-64bd399395db/go.mod h1:yOzd9gzygiw8QvoQeezToFEojl93FdFfDD2d64ZV6u8=
 github.com/stretchr/testify v1.2.2/go.mod h1:a8OnRcib4nhh0OaRAV+Yts87kKdq0PP7pXfy6kDkUVs=
