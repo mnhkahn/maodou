@@ -49,6 +49,7 @@ func (this *PeanutContainer) toDucument(p *Result) *index.Document {
 	document.Category = p.Category
 	document.Tags = strings.Split(p.Tags, " ")
 	document.Link = p.Link
+	document.Figure = p.Figure
 	return document
 }
 
@@ -64,6 +65,7 @@ func (this *PeanutContainer) toResults(ps []*index.Document) []Result {
 			Category:    p.Category,
 			Tags:        strings.Join(p.Tags, " "),
 			Link:        p.Link,
+			Figure:      p.Figure,
 		}
 		res = append(res, rr)
 	}
