@@ -45,7 +45,7 @@ func (this *PeanutContainer) toDucument(p *Result) *index.Document {
 	document.Title = p.Title
 	document.Brief = p.Description
 	document.FullText = p.Detail
-	document.PubDate = p.ParseDate.UnixNano()
+	document.PubDate = p.CreateTime.UnixNano()
 	document.Category = p.Category
 	document.Tags = strings.Split(p.Tags, " ")
 	document.Link = p.Link
