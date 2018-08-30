@@ -2,6 +2,12 @@
 ## [Unreleased]
 
 
+<a name="v1.0.1"></a>
+## [v1.0.1] - 2018-08-30
+### Fix
+- **module:** fix go mod with peanut version.
+
+
 <a name="v1.0.0"></a>
 ## v1.0.0 - 2018-08-30
 ### Feat
@@ -11,4 +17,5 @@
 - **dao:** add peanut dao.
 
 
-[Unreleased]: https://github.com/mnhkahn/maodou/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/mnhkahn/maodou/compare/v1.0.1...HEAD
+[v1.0.1]: https://github.com/mnhkahn/maodou/compare/v1.0.0...v1.0.1
