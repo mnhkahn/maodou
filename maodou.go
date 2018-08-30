@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/mnhkahn/gogogo/logger"
 	"github.com/mnhkahn/maodou/dao"
-	"github.com/mnhkahn/maodou/logs"
 	"github.com/mnhkahn/maodou/models"
 )
 
@@ -36,7 +36,6 @@ type HandlerConfig struct {
 }
 
 type MaoDou struct {
-	log      logs.LogContainer
 	Dao      dao.DaoContainer
 	req      *Request
 	resp     *Response
@@ -83,7 +82,6 @@ func (this *MaoDou) Init() {
 	// this.settings.dsn = "./maodou"
 	this.req = NewRequest(0)
 	// this.Dao, err = dao.NewDao(this.settings.dao_name, this.settings.dsn)
-	this.log, _ = logs.NewLog("colorlog", "")
 	if err != nil {
 		panic(err)
 	}
@@ -124,7 +122,7 @@ func (this *MaoDou) Serve(ip string, port int, graceful_timeout int) {
 }
 
 func (this *MaoDou) Log(format string, a ...interface{}) {
-	this.log.Log(format, a...)
+	logger.Infof(format, a...)
 }
 
 var APP *App
@@ -164,9 +162,9 @@ func (this *App) Run() error {
 }
 
 func (this *App) run() {
-	this.handler.Log("[INFO] Start parse at %s...\n", time.Now().Format(time.RFC3339))
+	logger.Infof("[INFO] Start parse at %s...\n", time.Now().Format(time.RFC3339))
 	this.handler.Start()
-	this.handler.Log("[SUCC] Parse end.\n")
+	logger.Infof("[SUCC] Parse end.\n")
 }
 
 func Register(handler Handler) {

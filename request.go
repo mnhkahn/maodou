@@ -7,6 +7,8 @@ import (
 	urlpkg "net/url"
 	"time"
 
+	"github.com/mnhkahn/gogogo/logger"
+
 	"github.com/mnhkahn/maodou/request"
 	"github.com/mnhkahn/maodou/request/goreq"
 	"github.com/mnhkahn/maodou/request/proxy"
@@ -96,7 +98,7 @@ func (this *Request) Cawl(paras ...interface{}) (*Response, error) {
 				return resp, err
 			}
 		} else {
-			log.Println("Cawl Success.")
+			logger.Info("Cawl Success.")
 		}
 	} else {
 		if len(paras) == 1 || (len(paras) == 2 && paras[1].(int) == CAWL_PROXY) {
