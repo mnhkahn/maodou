@@ -19,6 +19,8 @@ import (
 	"reflect"
 	"strings"
 	"time"
+
+	"github.com/mnhkahn/gogogo/logger"
 )
 
 type Request struct {
@@ -363,7 +365,7 @@ func (r Request) Do() (*Response, error) {
 	}
 
 	if r.ShowDebug {
-		log.Printf("Url: %s User-Agent: %s Proxy: %s", r.Uri, r.UserAgent, r.Proxy)
+		logger.Infof("Url: %s User-Agent: %s Proxy: %s", r.Uri, r.UserAgent, r.Proxy)
 	}
 	if r.ShowDebugDetail {
 		dump, err := httputil.DumpRequest(req, true)

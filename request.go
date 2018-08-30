@@ -62,20 +62,20 @@ func (this *Request) Cawl(paras ...interface{}) (*Response, error) {
 		}
 	}
 
-	log.Println("Start to Parse: ", this.Uri)
+	logger.Info("Start to Parse:", this.Uri)
 
 	start := time.Now()
 	this.ShowDebug = true
 	this.UserAgent = request.UserAgent()
 	http_resp, err := this.Do()
-	log.Printf("Cawl use %v.\n", time.Now().Sub(start))
+	logger.Infof("Cawl use %v.\n", time.Now().Sub(start))
 	// 修复代理错乱的问题，需要重置代理
 	this.Proxy = ""
 	if err != nil {
 		if len(paras) == 1 || (len(paras) == 2 && paras[1].(int) == CAWL_PROXY) {
 			this.proxy.DeleteProxy(p.Id)
 		}
-		log.Printf("Cawl Error: %s\n", err.Error())
+		logger.Warnf("Cawl Error: %s\n", err.Error())
 
 		// Retry
 		if len(paras) == 2 && paras[1].(int) == CAWL_RETRY {
