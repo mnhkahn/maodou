@@ -2,7 +2,6 @@ package maodou
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	urlpkg "net/url"
 	"time"
@@ -36,9 +35,9 @@ func NewRequest(interval time.Duration) *Request {
 }
 
 const (
-	CAWL_NOPROXY = 0
-	CAWL_PROXY   = 1
-	CAWL_RETRY   = 2
+	CawlNoProxy = 0
+	CawlProxy   = 1
+	CawlRetry   = 2
 )
 
 func (this *Request) Cawl(paras ...interface{}) (*Response, error) {
@@ -52,7 +51,7 @@ func (this *Request) Cawl(paras ...interface{}) (*Response, error) {
 	}
 
 	var p *proxy.ProxyConfig
-	if this.proxy != nil && (len(paras) == 1 || (len(paras) == 2 && paras[1].(int) == CAWL_PROXY)) {
+	if this.proxy != nil && (len(paras) == 1 || (len(paras) == 2 && paras[1].(int) == CawlProxy)) {
 		u := new(urlpkg.URL)
 		p = this.proxy.One()
 		if p.Ip != "" {
@@ -62,24 +61,24 @@ func (this *Request) Cawl(paras ...interface{}) (*Response, error) {
 		}
 	}
 
-	logger.Info("Start to Parse:", this.Uri)
+	logger.Debug("Start to Parse:", this.Uri)
 
 	start := time.Now()
 	this.ShowDebug = true
 	this.UserAgent = request.UserAgent()
 	http_resp, err := this.Do()
-	logger.Infof("Cawl use %v.\n", time.Now().Sub(start))
+	logger.Debugf("Cawl use %v.\n", time.Now().Sub(start))
 	// 修复代理错乱的问题，需要重置代理
 	this.Proxy = ""
 	if err != nil {
-		if len(paras) == 1 || (len(paras) == 2 && paras[1].(int) == CAWL_PROXY) {
+		if len(paras) == 1 || (len(paras) == 2 && paras[1].(int) == CawlProxy) {
 			this.proxy.DeleteProxy(p.Id)
 		}
 		logger.Warnf("Cawl Error: %s\n", err.Error())
 
 		// Retry
-		if len(paras) == 2 && paras[1].(int) == CAWL_RETRY {
-			log.Println("Retry...")
+		if len(paras) == 2 && paras[1].(int) == CawlRetry {
+			logger.Debug("Retry...")
 			this.Cawl(paras...)
 		} else {
 			return nil, err
@@ -90,32 +89,32 @@ func (this *Request) Cawl(paras ...interface{}) (*Response, error) {
 	if http_resp.StatusCode == http.StatusOK {
 		resp, err = NewResponse(http_resp.Body, this.Uri)
 		if err != nil {
-			if len(paras) == 2 && paras[1].(int) == CAWL_RETRY {
-				log.Println("Retry...")
+			if len(paras) == 2 && paras[1].(int) == CawlRetry {
+				logger.Debug("Retry...")
 				this.Cawl(paras...)
 			} else {
-				log.Printf("Cawl Error: %s.\n", err.Error())
+				logger.Warnf("Cawl Error: %s.\n", err.Error())
 				return resp, err
 			}
 		} else {
-			logger.Info("Cawl Success.")
+			logger.Debug("Cawl Success.")
 		}
 	} else {
-		if len(paras) == 1 || (len(paras) == 2 && paras[1].(int) == CAWL_PROXY) {
+		if len(paras) == 1 || (len(paras) == 2 && paras[1].(int) == CawlProxy) {
 			this.proxy.DeleteProxy(p.Id)
 		}
-		if len(paras) == 2 && paras[1].(int) == CAWL_RETRY {
-			log.Println("Retry...")
+		if len(paras) == 2 && paras[1].(int) == CawlRetry {
+			logger.Debug("Retry...")
 			this.Cawl(paras...)
 		} else {
 			if http_resp.StatusCode == http.StatusMovedPermanently || http_resp.StatusCode == http.StatusFound {
-				log.Println(this.Uri, http_resp.StatusCode)
+				logger.Debug(this.Uri, http_resp.StatusCode)
 				if len(paras) == 2 {
 					return this.Cawl(http_resp.Header.Get("Location"), paras[1])
 				}
 				return this.Cawl(http_resp.Header.Get("Location"))
 			} else {
-				log.Printf("Cawl Got Status Code %d.\n", http_resp.StatusCode)
+				logger.Info("Cawl Got Status Code %d.\n", http_resp.StatusCode)
 				return resp, fmt.Errorf("Cawl Got Status Code %d.", http_resp.StatusCode)
 			}
 		}

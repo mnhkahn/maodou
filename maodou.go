@@ -1,9 +1,9 @@
 package maodou
 
 import (
-	"log"
+	"fmt"
 	"math/rand"
-	"net/http"
+	"sync"
 	"time"
 
 	"github.com/mnhkahn/gogogo/logger"
@@ -12,27 +12,25 @@ import (
 )
 
 type Handler interface {
-	Init()
-	Start()
-	Index(resp *Response)
-	Detail(resp *Response)
-	Result(result *models.Result)
+	Init(link string)
+	Cawl(paras ...interface{}) (*Response, error)
+	Start(link string) (*Response, error)
+	Index(resp *Response, jobs chan string) error
+	Detail(resp *Response) (*models.Result, error)
+	Result(result *models.Result) error
 	Config() *HandlerConfig
-	Route(http_method, route string, function func(w http.ResponseWriter, req *http.Request))
-	Serve(ip string, port int, graceful_timeout int)
-	Log(format string, a ...interface{})
 }
 
 type HandlerConfig struct {
-	dao_name         string
-	dsn              string
-	cawl_every       time.Duration
-	interval         time.Duration
-	ip               string
-	port             int
-	graceful_timeout int
-	// proxy_name       string
-	// proxy_dsn        string
+	d          bool
+	link       string // start crawl link
+	dao_name   string
+	dsn        string
+	cawl_every time.Duration
+	interval   time.Duration
+	ip         string
+	jobs       chan string
+	wg         sync.WaitGroup
 }
 
 type MaoDou struct {
@@ -40,8 +38,7 @@ type MaoDou struct {
 	req      *Request
 	resp     *Response
 	settings *HandlerConfig
-	// supervisor *supervisor.SupervisorController
-	Debug bool
+	Debug    bool
 }
 
 func (this *MaoDou) SetRate(times ...time.Duration) {
@@ -54,15 +51,18 @@ func (this *MaoDou) SetRate(times ...time.Duration) {
 }
 
 func (this *MaoDou) SetProxy(proxy_name, proxy_dsn string) {
-	// this.settings.proxy_name, this.settings.proxy_dsn = proxy_name, proxy_dsn
 	this.req.InitProxy(proxy_name, proxy_dsn)
 }
 
-func (this *MaoDou) SetServe(ip string, port int, graceful_timeout int) {
-	this.settings.ip, this.settings.port, this.settings.graceful_timeout = ip, port, graceful_timeout
+func (this *MaoDou) SetD(d bool) {
+	this.settings.d = d
 }
 
 func (this *MaoDou) SetDao(dao_name, dsn string) {
+	if this.Dao != nil {
+		this.Dao.Close()
+	}
+
 	var err error
 	this.settings.dao_name, this.settings.dsn = dao_name, dsn
 	this.Dao, err = dao.NewDao(this.settings.dao_name, this.settings.dsn)
@@ -71,58 +71,62 @@ func (this *MaoDou) SetDao(dao_name, dsn string) {
 	}
 }
 
-func (this *MaoDou) Init() {
+func (this *MaoDou) SetJobLen(l int) {
+	if l <= 0 {
+		l = 1
+	}
+	this.settings.jobs = make(chan string, l)
+}
+
+func (this *MaoDou) Init(link string) {
 	var err error
 	this.settings = new(HandlerConfig)
+
+	this.settings.link = link
 	this.settings.cawl_every = 0
 	this.settings.interval = 0
-	this.settings.graceful_timeout = 1
-	// this.supervisor = supervisor.NewSupervisorController()
-	// this.settings.dao_name = "sqlite"
-	// this.settings.dsn = "./maodou"
 	this.req = NewRequest(0)
-	// this.Dao, err = dao.NewDao(this.settings.dao_name, this.settings.dsn)
+	this.SetJobLen(1)
+	this.SetDao("peanut", "./maodou.db")
+	this.SetD(true)
 	if err != nil {
 		panic(err)
 	}
 }
 
-func (this *MaoDou) Start() {
-	log.Println("Start Method is not override.")
+func (this *MaoDou) Start(link string) (*Response, error) {
+	resp, err := this.Cawl(link)
+	if err != nil {
+		return resp, err
+	}
+	return resp, nil
 }
 
 func (this *MaoDou) Cawl(paras ...interface{}) (*Response, error) {
 	return this.req.Cawl(paras...)
 }
 
-func (this *MaoDou) Index(resp *Response) {
-	log.Println("Start Method is not override.")
-	this.Detail(nil)
+func (this *MaoDou) Index(resp *Response, jobs chan string) error {
+	return fmt.Errorf("the Index Method is not override")
 }
 
-func (this *MaoDou) Detail(resp *Response) {
-	log.Println("Start Method is not override.")
-	this.Result(nil)
+func (this *MaoDou) AddJob(job string) {
+	this.settings.jobs <- job
 }
 
-func (this *MaoDou) Result(result *models.Result) {
-	log.Println("Start Method is not override.")
+func (this *MaoDou) Detail(resp *Response) (*models.Result, error) {
+	return nil, fmt.Errorf("the Detail is not override")
+}
+
+func (this *MaoDou) Result(result *models.Result) error {
+	if this.Dao != nil {
+		return this.Dao.AddResult(result)
+	}
+	return fmt.Errorf("dao is not init")
 }
 
 func (this *MaoDou) Config() *HandlerConfig {
 	return this.settings
-}
-
-func (this *MaoDou) Route(http_method, route string, function func(w http.ResponseWriter, req *http.Request)) {
-	// this.supervisor.Route(http_method, route, function)
-}
-
-func (this *MaoDou) Serve(ip string, port int, graceful_timeout int) {
-	// this.supervisor.Run(ip, port, graceful_timeout)
-}
-
-func (this *MaoDou) Log(format string, a ...interface{}) {
-	logger.Infof(format, a...)
 }
 
 var APP *App
@@ -155,15 +159,42 @@ func (this *App) Run() error {
 		}
 	}
 
-	if this.handler.Config().port > 0 {
-		this.handler.Serve(this.handler.Config().ip, this.handler.Config().port, this.handler.Config().graceful_timeout)
-	}
 	return nil
 }
 
 func (this *App) run() {
+	var done = make(chan struct{})
 	logger.Infof("[INFO] Start parse at %s...\n", time.Now().Format(time.RFC3339))
-	this.handler.Start()
+	if resp, err := this.handler.Start(this.handler.Config().link); err == nil {
+		// produce
+		go this.handler.Index(resp, this.handler.Config().jobs)
+		// consume
+		go func() {
+			for job := range this.handler.Config().jobs {
+				logger.Debug("do job:", job)
+				if resp, err := this.handler.Cawl(job); err == nil {
+					if res, err := this.handler.Detail(resp); err == nil {
+						if err := this.handler.Result(res); err != nil {
+							logger.Warn(err)
+						}
+					} else {
+						logger.Warn(err)
+					}
+				} else {
+					logger.Warn(err)
+				}
+			}
+			if this.handler.Config().d {
+				done <- struct{}{}
+			}
+		}()
+		if this.handler.Config().d {
+			<-done
+		}
+	} else {
+		logger.Warn(err)
+	}
+
 	logger.Infof("[SUCC] Parse end.\n")
 }
 

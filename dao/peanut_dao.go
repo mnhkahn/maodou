@@ -72,24 +72,8 @@ func (this *PeanutContainer) toResults(ps []*index.Document) []Result {
 	return res
 }
 
-func (this *PeanutContainer) AddResults(p []Result) {
-
-}
-
 func (this *PeanutContainer) DelResult(id interface{}) {
 
-}
-
-func (this *PeanutContainer) DelResults(source string) {
-
-}
-
-func (this *PeanutContainer) UpdateResult(p *Result) {
-
-}
-
-func (this *PeanutContainer) AddOrUpdate(p *Result) {
-	this.AddResult(p)
 }
 
 func (this *PeanutContainer) GetResults() ([]*Result, error) {
@@ -100,30 +84,22 @@ func (this *PeanutContainer) GetResultById(id uint64) (*Result, error) {
 	return nil, nil
 }
 
-func (this *PeanutContainer) GetResultByLink(url string) *Result {
-	p := new(Result)
-	return p
-}
-
-func (this *PeanutContainer) GetResult(author, sort string, limit, start int) []Result {
-	return nil
-}
-
-func (this *PeanutContainer) IsResultUpdate(p *Result) bool {
-	return false
-}
-
 func (this *PeanutContainer) Search(q string, limit, start int) (int, float64, []Result) {
 	cnt, res, err := this.ind.Search(&index.Param{
 		Query:  q,
 		Offset: start,
 		Size:   limit,
 	})
+
 	if err != nil {
 		logger.Warn(err)
 	}
 
 	return cnt, 0, this.toResults(res)
+}
+
+func (this *PeanutContainer) Close() error {
+	return this.ind.Close()
 }
 
 func init() {
