@@ -2,6 +2,12 @@
 ## [Unreleased]
 
 
+<a name="v1.0.4"></a>
+## [v1.0.4] - 2018-08-31
+### Refactor
+- **maodou:** auto cawl page and refactor dao, MaoDou
+
+
 <a name="v1.0.3"></a>
 ## [v1.0.3] - 2018-08-30
 ### Fix
@@ -29,7 +35,8 @@
 - **dao:** add peanut dao.
 
 
-[Unreleased]: https://github.com/mnhkahn/maodou/compare/v1.0.3...HEAD
+[Unreleased]: https://github.com/mnhkahn/maodou/compare/v1.0.4...HEAD
+[v1.0.4]: https://github.com/mnhkahn/maodou/compare/v1.0.3...v1.0.4
 [v1.0.3]: https://github.com/mnhkahn/maodou/compare/v1.0.2...v1.0.3
 [v1.0.2]: https://github.com/mnhkahn/maodou/compare/v1.0.1...v1.0.2
 [v1.0.1]: https://github.com/mnhkahn/maodou/compare/v1.0.0...v1.0.1
