@@ -7,8 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mnhkahn/gogogo/logger"
-
 	"github.com/PuerkitoBio/goquery"
 	"github.com/mnhkahn/maodou"
 	"github.com/mnhkahn/maodou/models"
@@ -18,31 +16,18 @@ type CyeamBlogCrawler struct {
 	maodou.MaoDou
 }
 
-func (this *CyeamBlogCrawler) Start() {
-	resp, err := this.Cawl("http://blog.cyeam.com/")
-	if err != nil {
-		logger.Warn(err)
-	} else {
-		this.Index(resp)
-	}
-}
-
-func (this *CyeamBlogCrawler) Index(resp *maodou.Response) {
+func (this *CyeamBlogCrawler) Index(resp *maodou.Response, jobs chan string) error {
 	resp.Doc(`#content > div > div > div > h2 > a`).Each(func(i int, s *goquery.Selection) {
 		href, has := s.Attr("href")
-		//logger.Infof("AA %+v", href)
 		if has {
-			resp, err := this.Cawl("http://blog.cyeam.com/" + href)
-			if err != nil {
-				logger.Warn(err)
-			} else {
-				this.Detail(resp)
-			}
+			this.AddJob("http://blog.cyeam.com/" + href)
 		}
 	})
+	return nil
 }
 
-func (this *CyeamBlogCrawler) Detail(resp *maodou.Response) {
+func (this *CyeamBlogCrawler) Detail(resp *maodou.Response) (*models.Result, error) {
+	var err error
 	res := new(models.Result)
 	u, _ := url.Parse(resp.Url)
 	res.Id = u.Path
@@ -67,18 +52,12 @@ func (this *CyeamBlogCrawler) Detail(resp *maodou.Response) {
 	res.Tags = strings.Join(tags, " ")
 	_category := resp.Doc("#content > div.row-fluid.post-full > div > ul:nth-child(6) > li:nth-child(2) > a").Text()
 	res.Category = strings.Split(strings.TrimSpace(_category), " ")[0]
-	this.Result(res)
-}
-
-func (this *CyeamBlogCrawler) Result(result *models.Result) {
-	logger.Info(result.Title, result.Link)
-	//if result.Figure != "" {
-	//	Dao, err := dao.NewDao("duoshuo", `{"short_name":"cyeam","secret":"df66f048bd56cba5bf219b51766dec0d"}`)
-	//	if err != nil {
-	//		panic(err)
-	//	}
-	//	Dao.AddResult(result)
-	//}
+	date := resp.Doc("#content > div.row-fluid.post-full > div > div.date > span:nth-child(2)").Text()
+	res.CreateTime, err = time.Parse("02 January 2006", date)
+	if err != nil {
+		return res, err
+	}
+	return res, nil
 }
 
 func main() {
@@ -87,6 +66,6 @@ func main() {
 
 func NewCyeamBlogCrawler() *CyeamBlogCrawler {
 	c := new(CyeamBlogCrawler)
-	c.MaoDou.Init()
+	c.MaoDou.Init("http://blog.cyeam.com/#all.html")
 	return c
 }
