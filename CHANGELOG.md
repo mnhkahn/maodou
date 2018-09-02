@@ -2,6 +2,12 @@
 ## [Unreleased]
 
 
+<a name="v1.0.5"></a>
+## [v1.0.5] - 2018-09-02
+### Feat
+- **search:** add sort support, sort by pv & pub date.
+
+
 <a name="v1.0.4"></a>
 ## [v1.0.4] - 2018-08-31
 ### Refactor
@@ -35,7 +41,8 @@
 - **dao:** add peanut dao.
 
 
-[Unreleased]: https://github.com/mnhkahn/maodou/compare/v1.0.4...HEAD
+[Unreleased]: https://github.com/mnhkahn/maodou/compare/v1.0.5...HEAD
+[v1.0.5]: https://github.com/mnhkahn/maodou/compare/v1.0.4...v1.0.5
 [v1.0.4]: https://github.com/mnhkahn/maodou/compare/v1.0.3...v1.0.4
 [v1.0.3]: https://github.com/mnhkahn/maodou/compare/v1.0.2...v1.0.3
 [v1.0.2]: https://github.com/mnhkahn/maodou/compare/v1.0.1...v1.0.2
