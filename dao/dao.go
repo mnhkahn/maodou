@@ -11,7 +11,7 @@ type DaoContainer interface {
 	DelResult(id interface{})
 	GetResults() ([]*Result, error)
 	GetResultById(id uint64) (*Result, error)
-	Search(q string, limit, start int) (int, float64, []Result)
+	Search(q string, limit, start int, sort string, asc bool) (int, float64, []Result)
 	Debug(is_debug bool)
 	Close() error
 }

@@ -50,6 +50,7 @@ func (this *PeanutContainer) toDucument(p *Result) *index.Document {
 	document.Tags = strings.Split(p.Tags, " ")
 	document.Link = p.Link
 	document.Figure = p.Figure
+	document.PV = p.PV
 	return document
 }
 
@@ -66,6 +67,7 @@ func (this *PeanutContainer) toResults(ps []*index.Document) []Result {
 			Tags:        strings.Join(p.Tags, " "),
 			Link:        p.Link,
 			Figure:      p.Figure,
+			PV:          p.PV,
 		}
 		res = append(res, rr)
 	}
@@ -84,11 +86,12 @@ func (this *PeanutContainer) GetResultById(id uint64) (*Result, error) {
 	return nil, nil
 }
 
-func (this *PeanutContainer) Search(q string, limit, start int) (int, float64, []Result) {
+func (this *PeanutContainer) Search(q string, limit, start int, sort string, asc bool) (int, float64, []Result) {
 	cnt, res, err := this.ind.Search(&index.Param{
 		Query:  q,
 		Offset: start,
 		Size:   limit,
+		Sort:   index.Sorter{sort, asc},
 	})
 
 	if err != nil {
