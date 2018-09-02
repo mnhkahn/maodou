@@ -15,4 +15,5 @@ type Result struct {
 	Link        string    `orm:"size(100)" json:"link"`
 	Source      string    `orm:"size(45)" json:"source"`
 	ParseDate   time.Time `orm:"auto_now_add;type(datetime)" json:"parse_date"`
+	PV          int       `json:"pv"`
 }
