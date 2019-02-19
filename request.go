@@ -100,9 +100,6 @@ func (this *Request) Cawl(paras ...interface{}) (*Response, error) {
 			logger.Debug("Cawl Success.")
 		}
 	} else {
-		if len(paras) == 1 || (len(paras) == 2 && paras[1].(int) == CawlProxy) {
-			this.proxy.DeleteProxy(p.Id)
-		}
 		if len(paras) == 2 && paras[1].(int) == CawlRetry {
 			logger.Debug("Retry...")
 			this.Cawl(paras...)
@@ -114,6 +111,10 @@ func (this *Request) Cawl(paras ...interface{}) (*Response, error) {
 				}
 				return this.Cawl(http_resp.Header.Get("Location"))
 			} else {
+				if len(paras) == 1 || (len(paras) == 2 && paras[1].(int) == CawlProxy) {
+					this.proxy.DeleteProxy(p.Id)
+				}
+
 				logger.Info("Cawl Got Status Code %d.\n", http_resp.StatusCode)
 				return resp, fmt.Errorf("Cawl Got Status Code %d.", http_resp.StatusCode)
 			}
