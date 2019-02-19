@@ -1,6 +1,9 @@
 <a name="unreleased"></a>
 ## [Unreleased]
 
+### Fix
+- **proxy:** Fix nil pointer error if got 301 status code
+
 
 <a name="v1.0.5"></a>
 ## [v1.0.5] - 2018-09-02
